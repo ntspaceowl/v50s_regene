@@ -3,11 +3,13 @@ package dev.regene.v50s;
 import android.app.Activity;
 import android.app.ActivityOptions;
 import android.app.AppOpsManager;
+import android.accessibilityservice.AccessibilityServiceInfo;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
+import android.view.accessibility.AccessibilityManager;
 import android.widget.*;
 
 public final class MainActivity extends Activity {
@@ -19,12 +21,22 @@ public final class MainActivity extends Activity {
             + " · 가로 방향 유지: " + (Settings.canDrawOverlays(MainActivity.this) ? "허용" : "설정 필요")
             + "\n" + getSharedPreferences("controller",0).getString("status","에뮬레이터를 선택하세요.")
             + "\n" + GameControllers.status()
+            + "\nCitra 패드 자동 숨김: " + (citraAccessAllowed() ? "허용" : "설정 필요")
             );
         handler.postDelayed(this,1000);
     }};
     boolean usageAllowed() {
         return ((AppOpsManager)getSystemService(APP_OPS_SERVICE)).checkOpNoThrow(
             AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), getPackageName()) == AppOpsManager.MODE_ALLOWED;
+    }
+    boolean citraAccessAllowed() {
+        AccessibilityManager manager=(AccessibilityManager)getSystemService(ACCESSIBILITY_SERVICE);
+        for(AccessibilityServiceInfo service:manager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)) {
+            android.content.pm.ServiceInfo info=service.getResolveInfo().serviceInfo;
+            if(getPackageName().equals(info.packageName)
+                && CitraDiagnosticService.class.getName().equals(info.name))return true;
+        }
+        return false;
     }
     @Override public void onCreate(Bundle bundle) {
         super.onCreate(bundle);
@@ -47,6 +59,10 @@ public final class MainActivity extends Activity {
             Button b = button(root, app[0]+(launch==null ? " · 미설치" : " 실행"),()->{
                 if (!usageAllowed() || !Settings.System.canWrite(this) || !Settings.canDrawOverlays(this)) {
                     Toast.makeText(this,"앱 사용 정보, 시스템 설정 변경, 가로 방향 유지 권한을 먼저 허용하세요.",Toast.LENGTH_LONG).show(); return;
+                }
+                if ("org.citra.rgn".equals(app[1]) && !citraAccessAllowed()) {
+                    Toast.makeText(this,"Citra 패드 자동 숨김 권한에서 ReGene 접근성 서비스를 허용하세요.",Toast.LENGTH_LONG).show();
+                    startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));return;
                 }
                 startForegroundService(new Intent(this,ControllerService.class).putExtra("package",app[1]));
                 ActivityOptions options=ActivityOptions.makeBasic();
