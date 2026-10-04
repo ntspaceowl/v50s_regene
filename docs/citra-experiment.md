@@ -19,3 +19,10 @@ JBR 21, Gradle 8.14.5, AGP 8.13.0, Android SDK 31에서 시험했다. 기존 소
 로컬 로그: `research/citra-probe-build.log`, `research/citra-probe-baseline-build.log`. 수정 사본은 다시 복원했다. 시험 APK 설치/게임 실행/연결 및 해제/게임 터치는 전부 미검증이다.
 
 다음 작업은 설치 APK와 일치하는 리소스 및 JNI 선언의 출처를 확인하는 것이다. 누락된 UI를 임의로 삭제하거나 원본 앱을 덮어쓰지 않는다.
+
+
+## 설치 APK 리소스 비교 (2026-10-04 후속)
+
+공식 Apktool 3.0.3으로 로컬 APK를 리소스만 추출했다(`research/citra-apk-resources`). 설치 APK의 리소스에도 공개 소스가 참조하는 BUTTON_A_X 계열의 integer와 fragment_emulation 레이아웃이 없고 activity_emulation 레이아웃이 존재했다. 따라서 소스의 누락 파일을 APK에서 단순히 복원해 빌드하는 접근으로는 현재 불일치를 해소할 수 없다. 소스와 실제 배포 APK의 Android 프런트엔드가 일치하지 않는다는 근거다.
+
+기존 DEX disassembly에는 SetBackgroundGLSL(String)이 PUBLIC STATIC NATIVE로 존재하는 것도 확인했다. JNI 선언 하나를 복원하는 것만으로 전체 프런트엔드 호환성이 증명되지는 않는다. 원본 APK 리소스 전체 덮어쓰기나 관련 UI 삭제를 통한 강제 빌드는 진행하지 않았다. 다음 선택지는 설치본과 맞는 Android 소스 확보 또는 기존 APK 동작을 이용한 companion 제어 경로 검토다.

@@ -63,3 +63,12 @@ Surface 교체 변경은 단독으로 실패했고 doOnPreDraw에 직접 원인 
 PID18692에서 설정 진입/복귀 후 상단 영상이 출력됐다. 이어 레이아웃 편집기에서 L을 y1228에서1149로 실제 이동·저장하고 게임으로 복귀했다. 같은 PID18692의 상하 영상과 본체 가상패드를 확인했으며, 가상 A로 안내 메뉴에 진입하고 하단 모험의 목적(1150,1630)을 눌러 해당 설명으로 이동했다. Surface 교체 후보 없이도 이 경로가 통과했다. 증거: melonds-minimal-editor-return.png, melonds-minimal-after-edit-menu-settled.png, melonds-minimal-after-edit-touch.png. 타이틀→안내 전환 중 짧은 검은 화면은 후속 캡처에서 정상 메뉴로 넘어갔으며 지속적인 렌더 실패로 분류하지 않는다.
 
 최소 빌드의 HOME/절전 재시험과 실제 회전/물리 터치/커버/BT·USB-C 컨트롤러 시험은 남아 있다. 앞 절 PID16397의 HOME·절전 결과를 이 빌드의 직접 검증으로 대신하지 않는다.
+
+
+## 최종 최소 수정본의 HOME / 화면 껐다 켜기 확인 (2026-10-04 후속)
+
+현재 설치된 두 파일 수정 APK(PID18692)로 HOME → 최근 앱 → melonDS Dev 카드를 선택했다. PID가 유지되고 2340×2160 합성 캡처에서 상·하 게임 영상 및 본체 영역의 가상패드 배치가 유지됐다. `melonds-clean-home-return.png`.
+
+KEYCODE_SLEEP 뒤 dumpsys power의 Asleep, KEYCODE_WAKEUP 뒤 Awake를 확인했다. PID18692가 유지됐으며 두 게임 영상과 배치가 그대로 나왔다. `melonds-clean-wake-return.png`. 복귀 후 하단 게임의 터치 안내 위치(1520,1980)에 1100ms 입력을 두 번 보냈고 설명이 다음 문장으로 진행됐다. `melonds-clean-wake-touch.png`. 두 입력 중 어느 입력부터 수신됐는지는 이 시험으로 구분하지 않았으므로 첫 터치 즉시 응답이나 실제 손가락 터치 통과를 주장하지 않는다.
+
+물리 회전/커버 개폐/USB 디버깅 없이 실행/게임패드 연결·해제 검증은 여전히 남아 있다.
