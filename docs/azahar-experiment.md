@@ -2,6 +2,10 @@
 
 2026-10-04 후속 패널 검증: 합성기의 물리 디스플레이 ID와 projection을 대조해 커버 위쪽/본체 아래쪽 배정을 확인했다. 디스플레이 ID별 screencap도 전체 캔버스를 반환하므로 패널 사진 증거로 쓰지 않는다. 실제 회전·손가락 터치는 미검증이다. [세부 기록](panel-projection.md).
 
+2026-10-04 실제 BT 후속: combo 해제 보완을 포함한 현재 설치 시험판에서 MX FLEX DUO가 device10 / sources0x01000711 / STATE_CONNECTED로 재연결됐다. PID29465 유지, 가상패드의 버튼·스틱·START/SELECT가 자동으로 사라졌다. 검증을 위해 자동 자세 판단을 잠시 끈 가로 배치에서 두 게임 화면이 유지된 것을 `azahar-bt-wide-settled.png`로 확인했다. 전환 직후 `azahar-bt-wide-hidden.png`는 검은 화면이므로 영상 유지의 증거가 아니다. 커버 분리·실제 회전은 이번 시험 범위가 아니다.
+
+격리 시험판 SharedPreferences에는 Host 버튼/축 매핑이 아직 없다. 사용자의 방향키 입력을 요청하고 해당 실물 장치의 getevent만 제한 시간 동안 관찰하는 중이며 실제 게임 입력 성공을 아직 판정하지 않았다. 연결과 표시 숨김을 입력 매핑 성공으로 간주하지 않는다. 이번 시험의 분리 복원·숨김 중 하단 터치는 아직 확인하지 않았다.
+
 ## 확인한 사실
 
 LM-V510N Android 12에서 일반 앱이 `DisplayManager.createVirtualDisplay`를 호출했다. 출력 Surface가 없는 가상 화면 생성 직후 LG 확장이 해제됐다. 같은 크기의 ImageReader Surface를 연결하고 프레임을 소비하면 가상 화면이 ON이었고 확장 상태와 2340×2160 크기가 유지됐다. 로그는 `test-results/2026-10-04/virtual-display-probe.log`에 있다.

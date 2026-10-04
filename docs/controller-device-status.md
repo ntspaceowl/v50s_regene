@@ -13,3 +13,7 @@
 - APK SHA256: `26626F72593BEA92528D928EE7956DC76D0EF983D427AE489E99F7CBDD3B9274`.
 
 실제 연결/분리 때 이름·대수가 변하는 시험과 여러 장치 동시 연결은 아직 미검증이다. 이번 변경은 상태 표시이며 네 에뮬레이터의 전체 가상패드 자동 숨김 완료를 뜻하지 않는다.
+
+## 후속 실제 Bluetooth 연결
+
+사용자가 재연결한 뒤 MX FLEX DUO가 input device10, 활성 외부 GAMEPAD/JOYSTICK, sources0x01000711로 등록되고 Bluetooth STATE_CONNECTED를 확인했다. ReGene의 실제 UI 텍스트도 `게임패드: MX FLEX DUO · 1대 인식`으로 바뀌었다. 앞선 미연결 상태와 구분된다. 현재 확인 범위는 단일 Bluetooth 연결이며 분리·다중 장치·USB-C는 미검증이다.
