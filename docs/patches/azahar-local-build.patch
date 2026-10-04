@@ -1,0 +1,83 @@
+diff --git a/src/android/app/build.gradle.kts b/src/android/app/build.gradle.kts
+index d873af1..ddc6849 100644
+--- a/src/android/app/build.gradle.kts
++++ b/src/android/app/build.gradle.kts
+@@ -21,7 +21,7 @@ plugins {
+  * next 680 years.
+  */
+ val autoVersion = (((System.currentTimeMillis() / 1000) - 1451606400) / 10).toInt()
+-val abiFilter = listOf("arm64-v8a", "x86_64")
++val abiFilter = listOf("arm64-v8a")
+ 
+ val downloadedJniLibsPath = "${layout.buildDirectory.get().asFile.path}/downloadedJniLibs"
+ 
+@@ -74,18 +74,6 @@ android {
+             abiFilters += abiFilter
+         }
+ 
+-        externalNativeBuild {
+-            cmake {
+-                arguments(
+-                    "-DENABLE_QT=0", // Don't use QT
+-                    "-DENABLE_SDL2=0", // Don't use SDL
+-                    "-DANDROID_ARM_NEON=true", // cryptopp requires Neon to work
+-                    "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON", // Support Android 15 16KiB page
+-                    // sizes
+-                    "-DENABLE_GDBSTUB=OFF" // Disable GDB stub
+-                )
+-            }
+-        }
+ 
+         buildConfigField("String", "GIT_VERSION", "\"${getGitVersion()}\"")
+         // ^ Has no suffix, unlike VERSION_NAME
+@@ -126,7 +114,7 @@ android {
+         // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
+         register("relWithDebInfo") {
+             initWith(getByName("release"))
+-            applicationIdSuffix = ".debug"
++            applicationIdSuffix = ".regeneprobe"
+             versionNameSuffix = "-debug"
+             signingConfig = signingConfigs.getByName("debug")
+             isShrinkResources = true
+@@ -162,7 +150,7 @@ android {
+         // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
+         debug {
+             // TODO If this is ever modified, change application_id in debug/strings.xml
+-            applicationIdSuffix = ".debug"
++            applicationIdSuffix = ".regeneprobe"
+             versionNameSuffix = "-debug"
+             isDebuggable = true
+             isJniDebuggable = true
+@@ -184,17 +172,11 @@ android {
+         }
+     }
+ 
+-    externalNativeBuild {
+-        cmake {
+-            version = "3.25.0+"
+-            path = file("../../../CMakeLists.txt")
+-        }
+-    }
+ 
+     sourceSets {
+         named("main") {
+             // Set up path for downloaded native libraries
+-            jniLibs.srcDir(downloadedJniLibsPath)
++            jniLibs.srcDir("prebuiltJniLibs")
+         }
+     }
+ }
+@@ -243,7 +225,7 @@ val unzipVulkanValidationLayers = tasks.register<Copy>("unzipVulkanValidationLay
+ }
+ 
+ tasks.named("preBuild") {
+-    dependsOn(unzipVulkanValidationLayers)
++    // Local experiment reuses exact official release native libraries.
+ }
+ 
+ ktlint {
+@@ -321,3 +303,4 @@ android.applicationVariants.configureEach {
+     }
+     tasks.named("bundle$capitalizedName").configure { finalizedBy(copyTask) }
+ }
++

@@ -11,6 +11,10 @@ import android.util.Log;
 import android.view.Display;
 
 public final class ControllerService extends Service implements SensorEventListener {
+    // Both services run in the default app process. Persisted preferences cannot
+    // prove a session survived an APK update or process death.
+    private static boolean running;
+    static boolean isRunning() {return running;}
     private final Handler handler=new Handler();
     private String selected="", foreground="", activity="", lastActivity="";
     private final ForegroundHistory foregroundHistory=new ForegroundHistory();
@@ -39,9 +43,8 @@ public final class ControllerService extends Service implements SensorEventListe
             .setContentTitle("ReGene 자동 제어 중").setContentText("듀얼스크린 상단 · 본체 하단")
             .addAction(new Notification.Action.Builder(null,"중지",stopIntent).build()).build());
         if(prefs.getBoolean("restore_pending",false)) {
-            try {if(lg.enabled())lg.set(false);} catch(Exception e) {fail(e);stopSelf();return;}
             oldRotation=prefs.getInt("old_rotation",0);oldAuto=prefs.getInt("old_auto",1);ownsRotation=true;
-            restoreRotation();
+            try {releaseDisplay();} catch(Exception e) {fail(e);stopSelf();return;}
         }
         cursor=System.currentTimeMillis()-2000;
         Display main=getSystemService(DisplayManager.class).getDisplay(0);
@@ -58,6 +61,7 @@ public final class ControllerService extends Service implements SensorEventListe
         if(intent==null || "STOP".equals(intent.getAction())) {stopSelf();return START_NOT_STICKY;}
         selected=intent.getStringExtra("package"); launchUntil=System.currentTimeMillis()+15000;
         if(selected==null || lg==null) {stopSelf();return START_NOT_STICKY;}
+        running=true;
         prefs.edit().putString("controller_selected",selected).putBoolean("controller_running",true).apply();
         // Warm launches also need a fresh history query: the game may already be resumed.
         cursor=System.currentTimeMillis()-60000;
@@ -69,14 +73,24 @@ public final class ControllerService extends Service implements SensorEventListe
         if(ownsRotation)return;
         oldRotation=Settings.System.getInt(getContentResolver(),Settings.System.USER_ROTATION,0);
         oldAuto=Settings.System.getInt(getContentResolver(),Settings.System.ACCELEROMETER_ROTATION,1);
-        prefs.edit().putBoolean("restore_pending",true).putInt("old_rotation",oldRotation).putInt("old_auto",oldAuto).commit();
+        if(!prefs.edit().putBoolean("restore_pending",true).putInt("old_rotation",oldRotation).putInt("old_auto",oldAuto).commit())
+            throw new IllegalStateException("Cannot save rotation restore state");
         ownsRotation=true;
     }
-    private void restoreRotation() {
+    private void restoreRotation() throws Exception {
         if(!ownsRotation)return;
-        Settings.System.putInt(getContentResolver(),Settings.System.USER_ROTATION,oldRotation);
-        Settings.System.putInt(getContentResolver(),Settings.System.ACCELEROMETER_ROTATION,oldAuto);
+        ReleaseActions.run(
+            ()->{if(!Settings.System.putInt(getContentResolver(),Settings.System.USER_ROTATION,oldRotation))
+                throw new IllegalStateException("Cannot restore user rotation");},
+            ()->{if(!Settings.System.putInt(getContentResolver(),Settings.System.ACCELEROMETER_ROTATION,oldAuto))
+                throw new IllegalStateException("Cannot restore automatic rotation");});
         ownsRotation=false;prefs.edit().putBoolean("restore_pending",false).apply();
+    }
+    private void releaseDisplay() throws Exception {
+        ReleaseActions.run(
+            ()->{if(lg!=null && lg.enabled())lg.set(false);},
+            ()->{if(guard!=null)guard.disable();},
+            ()->restoreRotation());
     }
     private void restoreBodyTaskFocus() {
         // Azahar keeps its running game in the launcher task. Other emulators
@@ -145,9 +159,7 @@ public final class ControllerService extends Service implements SensorEventListe
                 }
             } else if(now>launchUntil || !foreground.equals(getPackageName())) {
                 hadWide=false;
-                if(lg.enabled())lg.set(false);
-                guard.disable();
-                if(ownsRotation)restoreRotation();
+                releaseDisplay();
                 String reason;
                 if(!selected.equals(foreground))reason="다른 앱 사용 중: 화면 배치 대기";
                 else if(!(game || layoutEditor))reason="게임 또는 레이아웃 편집 화면 대기";
@@ -160,6 +172,16 @@ public final class ControllerService extends Service implements SensorEventListe
         } catch(Exception e) {fail(e);handler.removeCallbacks(this);stopSelf();return;}
         handler.postDelayed(this,650);
     }};
-    @Override public void onDestroy(){prefs.edit().putBoolean("controller_running",false).apply();handler.removeCallbacks(tick);if(sensors!=null)sensors.unregisterListener(this);try{if(lg!=null)lg.set(false);if(guard!=null)guard.disable();restoreRotation();}catch(Exception e){fail(e);}status("자동 제어 중지됨");super.onDestroy();}
+    @Override public void onDestroy(){
+        running=false;
+        prefs.edit().putBoolean("controller_running",false).apply();handler.removeCallbacks(tick);
+        try {
+            ReleaseActions.run(
+                ()->{if(sensors!=null)sensors.unregisterListener(this);},
+                ()->releaseDisplay());
+            status("자동 제어 중지됨");
+        } catch(Exception e) {fail(e);}
+        finally {super.onDestroy();}
+    }
     @Override public IBinder onBind(Intent intent){return null;}
 }

@@ -40,6 +40,8 @@ public final class MainActivity extends Activity {
     }
     @Override public void onCreate(Bundle bundle) {
         super.onCreate(bundle);
+        if(!ControllerService.isRunning())getSharedPreferences("controller",0).edit()
+            .putBoolean("controller_running",false).putString("status","에뮬레이터를 선택하세요.").apply();
         LinearLayout root = new LinearLayout(this); root.setOrientation(1); root.setPadding(28,36,28,28);
         TextView title = new TextView(this); title.setText("V50S ReGene"); title.setTextSize(28); root.addView(title);
         TextView intro = new TextView(this); intro.setText("듀얼스크린 = 상단\n본체 = 하단 터치 화면과 게임 버튼\n\n실행할 에뮬레이터를 선택하세요."); intro.setTextSize(18); root.addView(intro);
@@ -70,7 +72,11 @@ public final class MainActivity extends Activity {
                 startActivity(launch,options.toBundle());
             }); b.setEnabled(launch!=null);
         }
-        button(root,"자동 제어 중지",()->stopService(new Intent(this,ControllerService.class)));
+        button(root,"자동 제어 중지",()->{
+            stopService(new Intent(this,ControllerService.class));
+            getSharedPreferences("controller",0).edit().putBoolean("controller_running",false)
+                .putString("status","자동 제어 중지됨").apply();
+        });
         button(root,"Citra 패드 자동 숨김 권한",()->startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)));
         TextView note = new TextView(this); note.setText("가로로 돌리면 커버에는 상단 화면, 본체에는 하단 화면이 표시됩니다. 패드를 연결하면 가상패드가 자동으로 숨겨집니다."); root.addView(note);
         ScrollView scroll = new ScrollView(this); scroll.addView(root); setContentView(scroll);

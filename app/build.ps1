@@ -5,6 +5,11 @@ $taskTools = Join-Path $taskSdk 'build-tools/36.1.0'
 $taskJar = Join-Path $taskSdk 'platforms/android-36/android.jar'
 $taskJava = 'C:/Program Files/Android/Android Studio/jbr/bin'
 $taskBuild = Join-Path $taskApp 'build'
+foreach ($taskOutput in @('classes','dex')) {
+    $taskOutputPath = [IO.Path]::GetFullPath((Join-Path $taskBuild $taskOutput))
+    if (!$taskOutputPath.StartsWith([IO.Path]::GetFullPath($taskBuild) + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {throw 'Output outside build directory'}
+    if (Test-Path -LiteralPath $taskOutputPath) {Remove-Item -LiteralPath $taskOutputPath -Recurse -Force}
+}
 New-Item -ItemType Directory -Force "$taskBuild/classes","$taskBuild/dex" | Out-Null
 $taskSources = @(Get-ChildItem "$taskApp/src" -Recurse -Filter '*.java' | ForEach-Object FullName)
 & "$taskJava/javac.exe" --release 8 -encoding UTF-8 -classpath $taskJar -d "$taskBuild/classes" @taskSources

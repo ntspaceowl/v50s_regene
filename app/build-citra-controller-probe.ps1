@@ -92,7 +92,9 @@ $taskSurfaceRefresh = @'
     :regene_surface_ready
 '@
 $taskActivity = [regex]::Replace($taskActivity, $taskSurfacePattern, '$1' + $taskSurfaceRefresh + '$2')
-$taskActivity = $taskActivity.Replace(".method public surfaceChanged(Landroid/view/SurfaceHolder;III)V`r`n    .locals 0", ".method public surfaceChanged(Landroid/view/SurfaceHolder;III)V`r`n    .locals 1")
+$taskLocalsPattern = '(?m)(^\.method public surfaceChanged\(Landroid/view/SurfaceHolder;III\)V\r?\n    \.locals )0(?=\r?$)'
+if ([regex]::Matches($taskActivity, $taskLocalsPattern).Count -ne 1) {throw 'Expected one surface callback register declaration'}
+$taskActivity = [regex]::Replace($taskActivity, $taskLocalsPattern, '${1}1')
 [IO.File]::WriteAllText($taskActivityPath, $taskActivity, $taskUtf8)
 & "$taskJava/java.exe" -jar $taskApktool b $taskDecode -o "$taskBuild/citra-controller-unsigned.apk"
 if ($LASTEXITCODE) { throw 'Citra rebuild failed' }

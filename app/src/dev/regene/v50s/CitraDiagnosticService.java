@@ -116,7 +116,7 @@ public final class CitraDiagnosticService extends AccessibilityService {
         }
         long now = SystemClock.elapsedRealtime();
         if (now < nextAction) return;
-        if (!prefs.getBoolean("controller_running",false)
+        if (!ControllerService.isRunning()
             || !selected.contentEquals(root.getPackageName() == null ? "" : root.getPackageName())
             || !CitraTargets.game(selected, prefs.getString("foreground_screen",""))) {
             stage = 0; return;

@@ -2,7 +2,7 @@
 
 LG V50S에서 에뮬레이터를 선택하고 가로로 돌리면 커버에 상단 게임 화면, 본체에 하단 터치 화면과 조작 버튼을 표시한다. WideMode 앱 없이 LG 화면 확장 API를 호출한다.
 
-현재 설치본은 ReGene 0.1.15/code16이다. 목록에는 Citra, Azahar, melonDS, DraStic만 표시한다. 중복 설치본과 WideMode는 제거했으며 ROM/세이브는 보존했다. 각 게임 화면은 패널 높이에 맞추고 원래 비율을 유지한다. 3D 렌더링은 2배로 설정했고 Azahar는 Vulkan을 사용한다.
+현재 설치본은 ReGene 0.1.16/code17이다. 목록에는 Citra, Azahar, melonDS, DraStic만 표시한다. 중복 설치본과 WideMode는 제거했으며 ROM/세이브는 보존했다. 각 게임 화면은 패널 높이에 맞추고 원래 비율을 유지한다. 3D 렌더링은 2배로 설정했고 Azahar는 Vulkan을 사용한다.
 
 네 앱의 물리 상하 배치·입력·BT 가상패드 숨김/복원은 사용자 확인을 통과했다. Citra의 화면 잘림과 종료 후 확장 잔류 수정도 통과했다. 후속 Azahar에서는 게임 종료 후 목록 화면 재구성 및 화면 켜짐 뒤 본체 입력 포커스 복원을 보완했다. 최종 빌드의 같은 프로세스 실행·종료 3회, 새 프로세스 실행·종료 및 화면 꺼짐/켜짐 시험을 확인했다. 모든 게임·장시간 부하·케이스 탈착을 보장하는 결과는 아니다. 최신 근거는 docs/current-status.md와 docs/completion-audit.md를 참조한다.
 
@@ -16,7 +16,9 @@ LG V50S에서 에뮬레이터를 선택하고 가로로 돌리면 커버에 상�
 
 Windows PowerShell에서 ./app/build.ps1을 실행한다. Android SDK와 JBR 경로는 스크립트 상단에 있다. 출력은 app/build/regene-debug.apk이며 개발 서명키 app/build/debug.keystore를 유지한다. 현재 설치 가능한 APK는 releases에 앱별 하나씩 있다. 원본 ROM과 세이브는 포함하지 않는다.
 
-Azahar·melonDS의 Android 코드 보완과 Citra 빌드 경로는 docs의 experiment 문서 및 docs/patches에 기록했다. Azahar 최종 보완은 docs/patches/azahar-library-splash.patch에 있다. 네이티브 라이브러리는 기존 설치본과 바이트가 동일하다.
+Azahar·melonDS의 Android 코드 보완과 Citra 빌드 경로는 docs의 experiment 문서 및 docs/patches에 기록했다. Azahar 최종 보완은 docs/patches/azahar-library-splash.patch에 있다. 네이티브 라이브러리는 기존 설치본과 바이트가 동일하다. 현재 적용 패치와 재빌드 기준은 [빌드 자료 안내](docs/build-inputs.md)에 정리했다. APK·서명 키·외부 소스는 Git에 포함하지 않는다.
+
+회귀 검증은 `./app/test.ps1`로 실행한다. 종료 단계의 오류 격리, 전경 이력, 회전 감지, Citra 대상 분리, Citra 빌드의 LF/CRLF 레지스터 할당을 검사한다. 코드 리뷰에서 발견한 수정과 정리 내역은 [2026-10-05 리뷰](docs/code-review-2026-10-05.md)를 참조한다.
 
 ## 확인 범위와 남은 검증
 

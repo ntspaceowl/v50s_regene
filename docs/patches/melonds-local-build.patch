@@ -1,0 +1,49 @@
+diff --git a/app/build.gradle.kts b/app/build.gradle.kts
+index be37f55..1fbf91b 100644
+--- a/app/build.gradle.kts
++++ b/app/build.gradle.kts
+@@ -32,12 +32,7 @@ android {
+         versionName = AppConfig.versionName
+         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+         ndk {
+-            abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86_64"))
+-        }
+-        externalNativeBuild {
+-            cmake {
+-                cppFlags("-std=c++17 -Wno-write-strings")
+-            }
++            abiFilters.add("arm64-v8a")
+         }
+         vectorDrawables.useSupportLibrary = true
+     }
+@@ -52,7 +47,7 @@ android {
+             signingConfig = signingConfigs.getByName("release")
+         }
+         getByName("debug") {
+-            applicationIdSuffix = ".dev"
++            applicationIdSuffix = ".regeneprobe"
+         }
+     }
+ 
+@@ -79,13 +74,8 @@ android {
+             versionNameSuffix = " (NIGHTLY)"
+         }
+     }
+-    externalNativeBuild {
+-        cmake {
+-            path = file("CMakeLists.txt")
+-            version = "3.22.1"
+-        }
+-    }
+     sourceSets {
++        getByName("main").jniLibs.srcDir("prebuiltJniLibs")
+         // Adds exported schema location as test app assets.
+         getByName("androidTest").assets.directories += "$projectDir/schemas"
+     }
+@@ -175,4 +165,4 @@ dependencies {
+     androidTestImplementation(libs.androidx.test.core)
+     androidTestImplementation(libs.androidx.test.junit)
+     androidTestImplementation(libs.androidx.test.runner)
+-}
+\ No newline at end of file
++}
