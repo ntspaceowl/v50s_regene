@@ -102,7 +102,9 @@ public final class ControllerService extends Service implements SensorEventListe
                 Log.i("ReGene","Foreground="+screen);
             }
             boolean cover=false;
-            for(Display d:getSystemService(DisplayManager.class).getDisplays()) if(d.getDisplayId()==1 && d.getState()==Display.STATE_ON)cover=true;
+            // Logical IDs may change after attachment; only the LG physical cover qualifies.
+            for(Display d:getSystemService(DisplayManager.class).getDisplays())
+                if("Built-in Cover-Screen".equals(d.getName()) && d.getState()==Display.STATE_ON)cover=true;
             if(SystemClock.elapsedRealtime()-poseChangedAt>600)settledPose=pose.landscape();
             boolean landscape=!prefs.getBoolean("auto_pose",true) || settledPose;
             boolean game=activity.endsWith(".EmulationActivity") || activity.endsWith(".EmulatorActivity") || activity.endsWith(".DraSticEmuActivity");
