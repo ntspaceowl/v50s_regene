@@ -26,3 +26,14 @@ JBR 21, Gradle 8.14.5, AGP 8.13.0, Android SDK 31에서 시험했다. 기존 소
 공식 Apktool 3.0.3으로 로컬 APK를 리소스만 추출했다(`research/citra-apk-resources`). 설치 APK의 리소스에도 공개 소스가 참조하는 BUTTON_A_X 계열의 integer와 fragment_emulation 레이아웃이 없고 activity_emulation 레이아웃이 존재했다. 따라서 소스의 누락 파일을 APK에서 단순히 복원해 빌드하는 접근으로는 현재 불일치를 해소할 수 없다. 소스와 실제 배포 APK의 Android 프런트엔드가 일치하지 않는다는 근거다.
 
 기존 DEX disassembly에는 SetBackgroundGLSL(String)이 PUBLIC STATIC NATIVE로 존재하는 것도 확인했다. JNI 선언 하나를 복원하는 것만으로 전체 프런트엔드 호환성이 증명되지는 않는다. 원본 APK 리소스 전체 덮어쓰기나 관련 UI 삭제를 통한 강제 빌드는 진행하지 않았다. 다음 선택지는 설치본과 맞는 Android 소스 확보 또는 기존 APK 동작을 이용한 companion 제어 경로 검토다.
+
+
+## 기존 앱의 실행 중 숨김 UI 확인 (2026-10-04 후속)
+
+기존 Citra MMJ에서 BACK으로 게임 메뉴를 열고 Settings → Hide Input Buttons를 확인했다. `Edit Buttons/Toggle Controls` 항목은 DONE 버튼이 있는 배치 편집 화면으로 이동하며 전체 숨김 토글 자체는 Settings에 있다. 초기 checkbox는 꺼져 있었다.
+
+Hide Input Buttons를 켜고 설정 창을 닫았을 때 전체 가상패드가 사라졌으며 상·하 게임 영상과 PID22161가 유지됐다(`citra-hidden-game.png`, `citra-hidden-settings-checked.png`). 같은 항목을 다시 꺼 원래 표시 상태로 복원했다. `citra-restored-manual.png`에서 L/R, stick, d-pad, face, HOME, SELECT/START까지 다시 표시되고 PID22161가 유지됐다. 실제 게임패드 연결 이벤트로 실행한 시험이나 숨김 중 하단 게임 터치 통과는 아니다.
+
+게임 영상 및 메모리 숫자가 계속 갱신될 때 uiautomator dump가 idle timeout으로 실패했다. 최초 메뉴에서는 텍스트 노드를 읽었지만 Settings checkbox의 접근성 노드/checked 상태는 아직 읽지 못했고 캡처로만 확인했다. companion 구현에서는 실제 AccessibilityService에서 체크 상태와 클릭 성공을 검증해야 하며 화면 좌표에만 의존한 자동 토글은 충분한 근거가 없다. 이전 수동 상태를 저장하고 임시 변경한 경우에만 복원하는 처리도 필요하다.
+
+이번 첫 시도 중 16:47:53 PID20446의 NativeEmulation SIGSEGV, 16:48:31 PID21436의 InputOverlay Map.get null 오류가 발생했다. 둘의 원인을 단정하지 않는다. 재실행 PID22161에서는 메뉴 편집/숨김/복원 과정이 유지됐다. shell am stopservice는 오류를 반환했고 이후 dumpsys에서 ControllerService가 실행 중이었다. 따라서 이번 결과는 companion을 중지한 뒤 성공한 시험으로 해석하면 안 된다.

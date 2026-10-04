@@ -22,3 +22,6 @@
 후속 복원 시험: 자동 매핑 대기 중 MX FLEX DUO가 input 목록에서 사라졌다. 매핑은 완료되지 않았고 다이얼로그를 취소했다. Settings에서 게임으로 돌아온 뒤 전체 가상패드가 다시 표시됐다. PID3351 유지, 게임 영상과2340×2160 배치도 유지됐다. azahar-controller-disconnected-restored.png. 이 결과는 설정 화면에서 연결 해제한 뒤 복귀한 경우의 표시 복원이며 게임 전경에서 끊고 즉시 복원되는 경우와 재연결은 별도 검증이 필요하다.
 
 melonDS 분리 시험판에도 물리 장치 리스너 기반 임시 전체 숨김을 구현하고 빌드/설치했다. prefs/수동 표시 상태를 수정하지 않고 화면 컴포넌트와 하단 touch 리스너를 유지한다. 실제 실행/연결 검증은 아직 미완료다. details: melonds-experiment.md.
+
+
+Citra 기존 설치본 후속: 실행 중 Settings → Hide Input Buttons 체크박스로 전체 가상패드 숨김 및 다시 표시를 수동으로 확인했다. PID22161 및 두 게임 영상이 유지됐고 최종 수동 상태를 원래 OFF로 돌렸다. companion 자동 제어 후보이나 AccessibilityService 노드/checked 상태 검증, 물리 장치 이벤트, 숨김 중 터치, 이전 상태 복원 자동화는 아직 미구현이다. details: citra-experiment.md.
