@@ -13,6 +13,7 @@ import android.view.Display;
 public final class ControllerService extends Service implements SensorEventListener {
     private final Handler handler=new Handler();
     private String selected="", foreground="", activity="", lastActivity="";
+    private final ForegroundHistory foregroundHistory=new ForegroundHistory();
     private long cursor, budgetStart, cooldown, lastSet, launchUntil, activitySince;
     private int attempts;
     private LgWide lg;
@@ -56,6 +57,8 @@ public final class ControllerService extends Service implements SensorEventListe
         selected=intent.getStringExtra("package"); launchUntil=System.currentTimeMillis()+15000;
         if(selected==null || lg==null) {stopSelf();return START_NOT_STICKY;}
         prefs.edit().putString("controller_selected",selected).putBoolean("controller_running",true).apply();
+        // Warm launches also need a fresh history query: the game may already be resumed.
+        cursor=System.currentTimeMillis()-60000;
         handler.removeCallbacks(tick);handler.post(tick);return START_NOT_STICKY;
     }
     private void status(String message) {prefs.edit().putString("status",message).apply();Log.i("ReGene",message);}
@@ -82,13 +85,14 @@ public final class ControllerService extends Service implements SensorEventListe
     private final Runnable tick=new Runnable(){public void run(){
         try {
             long now=System.currentTimeMillis();
-            UsageEvents events=getSystemService(UsageStatsManager.class).queryEvents(cursor,now);
+            // UsageStats can publish a resume after the poll containing its timestamp.
+            UsageEvents events=getSystemService(UsageStatsManager.class).queryEvents(Math.max(0,cursor-10000),now);
             UsageEvents.Event event=new UsageEvents.Event();
             while(events.hasNextEvent()) {events.getNextEvent(event);
-                if(event.getEventType()==UsageEvents.Event.ACTIVITY_RESUMED && !"com.lge.secondlauncher".equals(event.getPackageName())) {
-                    foreground=event.getPackageName();activity=event.getClassName();
-                }
+                if(event.getEventType()==UsageEvents.Event.ACTIVITY_RESUMED)
+                    foregroundHistory.resumed(event.getTimeStamp(),event.getPackageName(),event.getClassName());
             }
+            foreground=foregroundHistory.packageName();activity=foregroundHistory.className();
             cursor=now;
             String screen=foreground+"/"+activity;
             if(!screen.equals(lastActivity)) {
