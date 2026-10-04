@@ -5,7 +5,7 @@
 ## 조사와 구현 상태
 
 - Azahar 2126.1.2: showOverlay는 수동 표시 설정이다. 조사한 소스에서 장치 연결에 따른 자동 숨김은 발견하지 못했다. 분리 설치한 시험판에 InputManager 장치 리스너를 추가했다. GAMEPAD/JOYSTICK 입력을 제공하는 enabled/external/non-virtual 장치만 감지하며 LG 커버 터치 장치는 해당되지 않는다. 초기 연결 및 추가/제거/변경을 처리하고 prefs를 수정하지 않는 임시 표시 조건으로 전체 버튼/스틱을 숨긴다. 기존 터치 처리 View는 유지한다. 숨기기 전 가상패드의 입력을 중립 상태로 보내고 View 해제 때 리스너도 해제한다. 패치: patches/azahar-controller-overlay.patch. 원본 앱에는 적용하지 않았다.
-- Citra MMJ 20251112: InputOverlay.ControllerHide는 수동 설정이다. 해당 소스의 대입 경로는 설정 변경 및 메뉴 표시/복원이며 연결 리스너에 의한 자동 숨김은 발견하지 못했다. 실제 설치본의 동작 확인과 별도 제어 경로 검토가 남았다.
+- Citra MMJ 20251112: InputOverlay.ControllerHide는 수동 설정이다. 해당 소스의 대입 경로는 설정 변경 및 메뉴 표시/복원이며 연결 리스너에 의한 자동 숨김은 발견하지 못했다. InputManager 연결 감지 및 전체 숨김 패치를 별도 작업 사본에 준비했다. 수정 전후 동일한 55개 누락 리소스/메서드 오류로 빌드가 실패해 아직 APK를 설치하지 않았다. [시험 기록](citra-experiment.md), [소스 패치](patches/citra-controller-overlay.patch). 원본 앱은 변경하지 않았다.
 - melonDS 2.0.1: [SoftInputBehaviour](https://github.com/rafaelvcaetano/melonDS-android/blob/2.0.1/app/src/main/java/me/magnum/melonds/domain/model/input/SoftInputBehaviour.kt)는 항상 표시, 기본 게임 버튼 숨김, 연결 컨트롤러에 매핑된 입력 숨김, 항상 숨김의 네 모드다. 전체 입력을 연결 여부로 숨기는 모드는 없다. [ConnectedControllerManager](https://github.com/rafaelvcaetano/melonDS-android/blob/2.0.1/app/src/main/java/me/magnum/melonds/ui/emulator/input/ConnectedControllerManager.kt)는 기본 게임 버튼의 매핑까지 검증한 뒤 연결 상태를 발행하므로 단순 물리 연결만으로 자동 숨김이 되는 것도 보장되지 않는다. 기존 옵션만으로 전체 부가 버튼 숨김 요구사항이 충족됐다고 판단하지 않는다.
 - DraStic: 폐쇄 소스. 설치본 r2.6.0.4a APK 리소스에서 `str_set_disablemapped` = Disable mapped keys in overlay, 설명 = Buttons with a key mapping will not be active in the controller overlay를 확인했다. 이는 전체 숨김의 증거가 아니다. 게임 중 Show/Hide Virtual Buttons 기능도 있으며 실제 연결 및 복원 동작 확인이 남았다.
 

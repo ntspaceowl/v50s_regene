@@ -1,0 +1,77 @@
+--- a/src/android/app/src/main/java/org/citra/emu/overlay/InputOverlay.java
++++ b/src/android/app/src/main/java/org/citra/emu/overlay/InputOverlay.java
+@@ -2,6 +2,10 @@
+ 
+ import android.annotation.SuppressLint;
+ import android.content.Context;
++import android.hardware.input.InputManager;
++import android.os.Handler;
++import android.os.Looper;
++import android.view.InputDevice;
+ import android.content.SharedPreferences;
+ import android.content.res.Configuration;
+ import android.content.res.Resources;
+@@ -91,6 +95,50 @@
+     private Paint mPaint;
+ 
+     private SharedPreferences mPreferences;
++    private boolean mPhysicalControllerConnected;
++    private final InputManager.InputDeviceListener mControllerListener = new InputManager.InputDeviceListener() {
++        public void onInputDeviceAdded(int id) { updateControllerVisibility(); }
++        public void onInputDeviceRemoved(int id) { updateControllerVisibility(); }
++        public void onInputDeviceChanged(int id) { updateControllerVisibility(); }
++    };
++
++    private boolean hasPhysicalController() {
++        for (int id : InputDevice.getDeviceIds()) {
++            InputDevice device = InputDevice.getDevice(id);
++            if (device != null && device.isEnabled() && device.isExternal() && !device.isVirtual()
++                    && (device.supportsSource(InputDevice.SOURCE_GAMEPAD)
++                    || device.supportsSource(InputDevice.SOURCE_JOYSTICK))) return true;
++        }
++        return false;
++    }
++
++    private void updateControllerVisibility() {
++        boolean connected = hasPhysicalController();
++        if (connected == mPhysicalControllerConnected) return;
++        if (connected) {
++            for (InputObject input : mInputObjects) {
++                if (input.getPointerId() != -1) {
++                    input.onPointerUp(input.getPointerId(), 0, 0);
++                }
++            }
++        }
++        mPhysicalControllerConnected = connected;
++        refreshControls();
++        invalidate();
++    }
++
++    @Override protected void onAttachedToWindow() {
++        super.onAttachedToWindow();
++        InputManager manager = (InputManager) getContext().getSystemService(Context.INPUT_SERVICE);
++        manager.registerInputDeviceListener(mControllerListener, new Handler(Looper.getMainLooper()));
++        updateControllerVisibility();
++    }
++
++    @Override protected void onDetachedFromWindow() {
++        InputManager manager = (InputManager) getContext().getSystemService(Context.INPUT_SERVICE);
++        manager.unregisterInputDeviceListener(mControllerListener);
++        super.onDetachedFromWindow();
++    }
+ 
+     public InputOverlay(Context context, AttributeSet attrs) {
+         super(context, attrs);
+@@ -338,9 +386,9 @@
+             getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+         // Remove all the overlay buttons
+         mInputObjects.clear();
+-        mOverlayPointer = new InputOverlayPointer();
+-
+-        if (sHideInputOverlay) {
++        if (mOverlayPointer == null) mOverlayPointer = new InputOverlayPointer();
++
++        if (sHideInputOverlay || mPhysicalControllerConnected) {
+             if (previousSize > 0) {
+                 invalidate();
+             }
