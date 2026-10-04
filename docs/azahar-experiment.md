@@ -17,3 +17,13 @@ OFF 화면이 이미 존재할 때 다시 확장하는 것은 성공했다. 따�
 시험 빌드는 빌드/설치에 성공했다. OpenGL 커비에서 2340×2160 확장이 약 40초간 유지됐고 HOME/최근 앱 복귀 후 같은 프로세스에서 게임 영상과 확장이 회복됐다. 원본에서 관찰한 0.5초 내 반복 해제는 이 시험에서 나타나지 않았다. 물리 회전, 모든 버튼의 본체 배치, 게임 터치 및 나머지 lifecycle은 미완료다. 저장한 custom 좌표와 실제 렌더링이 다른 문제도 발견돼 설정 매핑 확인이 필요하다.
 
 ReGene만으로 원본 Azahar가 해결됐다는 증거가 아니며, upstream에 제출하거나 공개 배포하지 않았다. 연구 checkout의 AI-POLICY.md는 자율 PR/이슈 제출을 금지하므로 향후 upstream 제안은 사람이 직접 검증하고 해당 정책에 맞춰 진행해야 한다.
+
+## 추가 실험: 좌표 설정과 Surface 복귀
+
+좌표 불일치의 원인을 확인했다. 공식 `default_ini.h`의 `[Layout]` 도중 `[Storage]`가 시작되고 custom 좌표는 그 이후에 기록된다. Java 설정 파서는 좌표 값을 읽지만 native config는 Layout 섹션에서만 읽어 기본값을 사용한다. 시험 폴더의 config.ini에서 Storage 헤더와 두 옵션을 Utility 직전으로 이동하여 나머지 값을 보존했다. 진단에서 native 좌표 300,50,1600,960 / 460,1140,1280,960을 확인했다. 원본 앱의 config는 변경하지 않았다.
+
+읽기 전용 native 진단 helper와 로그 코드는 제거하고 다시 빌드/설치했다. 모든 가상패드 위치를 본체 영역으로 저장하고 scale20을 적용했다. 15:01 시험 PID30330에서 실제 화면 배치, 가상 A 입력, 하단 OK 터치로 다음 질문으로 진행을 확인했다. 증거: azahar-clean-body-controls.png, azahar-clean-after-a.png, azahar-clean-lower-touch.png.
+
+그러나 15:03 HOME/최근 앱 복귀에서 SIGSEGV가 발생했다. ANativeWindow_setBuffersGeometry → CreateWindowSurface → PollEvents 경로이며 게임 유지 복귀는 실패다. 로그: azahar-clean-return-crash.log. 앞선 한 회 성공을 보편적인 안정성으로 확대하지 않는다.
+
+다음 시험은 EmulationFragment.onResume의 즉시 unpause를 기존 emulationState.run으로 대체한다. 저장된 Surface가 없으면 Surface 콜백까지 재개를 기다리도록 하는 최소 Kotlin 가설 수정이다. 네이티브 라이브러리는 동일하며, Surface 수명 문제 전체가 해결됐다는 주장은 실험 결과가 나오기 전에는 하지 않는다.

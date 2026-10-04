@@ -1,0 +1,14 @@
+diff --git a/src/android/app/src/main/java/org/citra/citra_emu/fragments/EmulationFragment.kt b/src/android/app/src/main/java/org/citra/citra_emu/fragments/EmulationFragment.kt
+index 63430da..09900ad 100644
+--- a/src/android/app/src/main/java/org/citra/citra_emu/fragments/EmulationFragment.kt
++++ b/src/android/app/src/main/java/org/citra/citra_emu/fragments/EmulationFragment.kt
+@@ -531,7 +531,8 @@ class EmulationFragment :
+         super.onResume()
+         Choreographer.getInstance().postFrameCallback(this)
+         if (NativeLibrary.isRunning()) {
+-            emulationState.unpause()
++            // Resume only after the replacement Surface has been delivered.
++            emulationState.run(emulationActivity.isActivityRecreated)
+ 
+             // If the overlay is enabled, we need to update the position if changed
+             val position = IntSetting.PERFORMANCE_OVERLAY_POSITION.int

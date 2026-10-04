@@ -1,0 +1,88 @@
+diff --git a/src/android/app/src/main/java/org/citra/citra_emu/overlay/InputOverlay.kt b/src/android/app/src/main/java/org/citra/citra_emu/overlay/InputOverlay.kt
+index 06c5ff2..a2c93ab 100644
+--- a/src/android/app/src/main/java/org/citra/citra_emu/overlay/InputOverlay.kt
++++ b/src/android/app/src/main/java/org/citra/citra_emu/overlay/InputOverlay.kt
+@@ -13,9 +13,13 @@ import android.graphics.BitmapFactory
+ import android.graphics.Canvas
+ import android.graphics.Rect
+ import android.graphics.drawable.VectorDrawable
++import android.hardware.input.InputManager
++import android.os.Handler
++import android.os.Looper
+ import android.util.AttributeSet
+ import android.util.DisplayMetrics
+ import android.view.MotionEvent
++import android.view.InputDevice
+ import android.view.SurfaceView
+ import android.view.View
+ import android.view.View.OnTouchListener
+@@ -51,6 +55,31 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
+     private var dpadBeingConfigured: InputOverlayDrawableDpad? = null
+     private var joystickBeingConfigured: InputOverlayDrawableJoystick? = null
+     private val settingsViewModel = NativeLibrary.sEmulationActivity.get()!!.settingsViewModel
++    private val inputManager = getContext().getSystemService(Context.INPUT_SERVICE) as InputManager
++    private val controllerListener = object : InputManager.InputDeviceListener {
++        override fun onInputDeviceAdded(deviceId: Int) = refreshControls()
++        override fun onInputDeviceRemoved(deviceId: Int) = refreshControls()
++        override fun onInputDeviceChanged(deviceId: Int) = refreshControls()
++    }
++
++    override fun onAttachedToWindow() {
++        super.onAttachedToWindow()
++        inputManager.registerInputDeviceListener(controllerListener, Handler(Looper.getMainLooper()))
++        refreshControls()
++    }
++
++    override fun onDetachedFromWindow() {
++        inputManager.unregisterInputDeviceListener(controllerListener)
++        super.onDetachedFromWindow()
++    }
++
++    private fun hasConnectedController(): Boolean = inputManager.inputDeviceIds.any { id ->
++        inputManager.getInputDevice(id)?.let { device ->
++            device.isEnabled && device.isExternal && !device.isVirtual &&
++                (device.supportsSource(InputDevice.SOURCE_GAMEPAD) ||
++                    device.supportsSource(InputDevice.SOURCE_JOYSTICK))
++        } == true
++    }
+ 
+     // Stores the ID of the pointer that interacted with the 3DS touchscreen.
+     private var touchscreenPointerId = -1
+@@ -622,6 +651,28 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
+     }
+ 
+     fun refreshControls() {
++        val controllerConnected = hasConnectedController()
++        if (controllerConnected && NativeLibrary.isRunning()) {
++            // Clear touchscreen gamepad inputs before removing their release targets.
++            overlayButtons.forEach { button ->
++                if (button.id == Hotkey.COMBO_BUTTON.button &&
++                    button.status == NativeLibrary.ButtonState.PRESSED) {
++                    ComboHelper.comboActivate(NativeLibrary.ButtonState.RELEASED)
++                }
++                NativeLibrary.onGamePadEvent(NativeLibrary.TOUCHSCREEN_DEVICE,
++                    button.id, NativeLibrary.ButtonState.RELEASED)
++            }
++            overlayDpads.forEach { dpad ->
++                listOf(dpad.upId, dpad.downId, dpad.leftId, dpad.rightId).forEach { id ->
++                    NativeLibrary.onGamePadEvent(NativeLibrary.TOUCHSCREEN_DEVICE,
++                        id, NativeLibrary.ButtonState.RELEASED)
++                }
++            }
++            overlayJoysticks.forEach { joystick ->
++                NativeLibrary.onGamePadMoveEvent(NativeLibrary.TOUCHSCREEN_DEVICE,
++                    joystick.joystickId, 0f, 0f)
++            }
++        }
+         // Remove all the overlay buttons from the HashSet.
+         overlayButtons.clear()
+         overlayDpads.clear()
+@@ -634,7 +685,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
+             }
+ 
+         // Add all the enabled overlay items back to the HashSet.
+-        if (EmulationMenuSettings.showOverlay) {
++        if (EmulationMenuSettings.showOverlay && !controllerConnected) {
+             addOverlayControls(orientation)
+         }
+         invalidate()
