@@ -1,5 +1,7 @@
 # Azahar V50S 가상 화면 시험
 
+2026-10-04 후속 패널 검증: 합성기의 물리 디스플레이 ID와 projection을 대조해 커버 위쪽/본체 아래쪽 배정을 확인했다. 디스플레이 ID별 screencap도 전체 캔버스를 반환하므로 패널 사진 증거로 쓰지 않는다. 실제 회전·손가락 터치는 미검증이다. [세부 기록](panel-projection.md).
+
 ## 확인한 사실
 
 LM-V510N Android 12에서 일반 앱이 `DisplayManager.createVirtualDisplay`를 호출했다. 출력 Surface가 없는 가상 화면 생성 직후 LG 확장이 해제됐다. 같은 크기의 ImageReader Surface를 연결하고 프레임을 소비하면 가상 화면이 ON이었고 확장 상태와 2340×2160 크기가 유지됐다. 로그는 `test-results/2026-10-04/virtual-display-probe.log`에 있다.
