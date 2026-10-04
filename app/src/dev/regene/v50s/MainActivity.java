@@ -1,0 +1,51 @@
+package dev.regene.v50s;
+
+import android.app.Activity;
+import android.app.AppOpsManager;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.Handler;
+import android.provider.Settings;
+import android.widget.*;
+
+public final class MainActivity extends Activity {
+    private TextView state;
+    private final Handler handler = new Handler();
+    private final Runnable refresh = new Runnable() { public void run() {
+        state.setText("앱 사용 정보: " + (usageAllowed() ? "허용" : "설정 필요")
+            + " · 시스템 설정: " + (Settings.System.canWrite(MainActivity.this) ? "허용" : "설정 필요")
+            + "\n" + getSharedPreferences("controller",0).getString("status","에뮬레이터를 선택하세요."));
+        handler.postDelayed(this,1000);
+    }};
+    boolean usageAllowed() {
+        return ((AppOpsManager)getSystemService(APP_OPS_SERVICE)).checkOpNoThrow(
+            AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), getPackageName()) == AppOpsManager.MODE_ALLOWED;
+    }
+    @Override public void onCreate(Bundle bundle) {
+        super.onCreate(bundle);
+        LinearLayout root = new LinearLayout(this); root.setOrientation(1); root.setPadding(28,36,28,28);
+        TextView title = new TextView(this); title.setText("V50S ReGene"); title.setTextSize(28); root.addView(title);
+        TextView intro = new TextView(this); intro.setText("듀얼스크린 = 상단\n본체 = 하단 터치 화면과 게임 버튼\n\n실행할 에뮬레이터를 선택하세요."); intro.setTextSize(18); root.addView(intro);
+        state = new TextView(this); root.addView(state);
+        button(root,"앱 사용 정보 허용",()->startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS,Uri.parse("package:"+getPackageName()))));
+        button(root,"시스템 설정 변경 허용",()->startActivity(new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,Uri.parse("package:"+getPackageName()))));
+        String[][] apps = {{"Citra","org.citra.emu"},{"melonDS","me.magnum.melonds"},{"DraStic","com.dsemu.drastic"},{"Azahar · 호환성 검증 중","org.azahar_emu.azahar"}};
+        for (String[] app:apps) {
+            Intent launch = getPackageManager().getLaunchIntentForPackage(app[1]);
+            Button b = button(root, app[0]+(launch==null ? " · 미설치" : " 실행"),()->{
+                if (!usageAllowed() || !Settings.System.canWrite(this)) {
+                    Toast.makeText(this,"위의 두 권한을 먼저 허용하세요.",Toast.LENGTH_LONG).show(); return;
+                }
+                startForegroundService(new Intent(this,ControllerService.class).putExtra("package",app[1]));
+                startActivity(launch);
+            }); b.setEnabled(launch!=null);
+        }
+        button(root,"자동 제어 중지",()->stopService(new Intent(this,ControllerService.class)));
+        TextView note = new TextView(this); note.setText("최초 시험 버전 · 게임 레이아웃은 각 에뮬레이터에 저장된 설정을 사용합니다. 가로 방향은 듀얼스크린이 위로 오도록 맞춰 주세요."); root.addView(note);
+        ScrollView scroll = new ScrollView(this); scroll.addView(root); setContentView(scroll);
+    }
+    private Button button(LinearLayout root,String text,Runnable action) { Button b=new Button(this); b.setText(text); b.setOnClickListener(v->action.run()); root.addView(b); return b; }
+    @Override public void onResume() {super.onResume();handler.post(refresh);}
+    @Override public void onPause() {handler.removeCallbacks(refresh);super.onPause();}
+}
