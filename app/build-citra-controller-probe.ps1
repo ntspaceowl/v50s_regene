@@ -17,7 +17,6 @@ if (($taskManifest.Split([string[]]@($taskOldConfig), [StringSplitOptions]::None
 }
 $taskManifest = $taskManifest.Replace($taskOldConfig, 'android:configChanges="orientation|screenLayout|screenSize|smallestScreenSize|keyboard|keyboardHidden|navigation"')
 $taskManifest = $taskManifest.Replace('package="org.citra.emu"', 'package="org.citra.rgn"')
-$taskManifest = $taskManifest.Replace('android:label="Citra"', 'android:label="Citra ReGene Probe"')
 $taskManifest = $taskManifest.Replace('org.citra.emu.filesprovider', 'org.citra.rgn.filesprovider')
 $taskManifest = $taskManifest.Replace('org.citra.emu.userpathprovider', 'org.citra.rgn.userpathprovider')
 [IO.File]::WriteAllText($taskManifestPath, $taskManifest, $taskUtf8)
@@ -76,6 +75,24 @@ if ([regex]::Matches($taskActivity, $taskDisplayPattern).Count -ne 1) {
     throw 'Expected exactly one display-added lookup'
 }
 $taskActivity = [regex]::Replace($taskActivity, $taskDisplayPattern, '$1' + "`n    if-eqz p1, :goto_0`n" + '$2')
+[IO.File]::WriteAllText($taskActivityPath, $taskActivity, $taskUtf8)
+# The original callback ignores size changes once the game is running. Rebind the
+# resized Surface so its native buffer follows portrait -> dual landscape.
+$taskSurfacePattern = '(?s)(\.method public surfaceChanged\(Landroid/view/SurfaceHolder;III\)V.*?iput-object p1, p0, Lorg/citra/emu/ui/EmulationActivity;->y:Landroid/view/Surface;)(.*?\.end method)'
+if ([regex]::Matches($taskActivity, $taskSurfacePattern).Count -ne 1) { throw 'Expected one surface resize callback' }
+$taskSurfaceRefresh = @'
+
+    invoke-static {p1}, Lorg/citra/emu/NativeLibrary;->SurfaceChanged(Landroid/view/Surface;)V
+    invoke-static {}, Lorg/citra/emu/NativeLibrary;->IsRunning()Z
+    move-result v0
+    if-eqz v0, :regene_surface_ready
+    invoke-direct {p0}, Lorg/citra/emu/ui/EmulationActivity;->J0()V
+    invoke-direct {p0}, Lorg/citra/emu/ui/EmulationActivity;->I0()V
+    invoke-static {}, Lorg/citra/emu/NativeLibrary;->WindowChanged()V
+    :regene_surface_ready
+'@
+$taskActivity = [regex]::Replace($taskActivity, $taskSurfacePattern, '$1' + $taskSurfaceRefresh + '$2')
+$taskActivity = $taskActivity.Replace(".method public surfaceChanged(Landroid/view/SurfaceHolder;III)V`r`n    .locals 0", ".method public surfaceChanged(Landroid/view/SurfaceHolder;III)V`r`n    .locals 1")
 [IO.File]::WriteAllText($taskActivityPath, $taskActivity, $taskUtf8)
 & "$taskJava/java.exe" -jar $taskApktool b $taskDecode -o "$taskBuild/citra-controller-unsigned.apk"
 if ($LASTEXITCODE) { throw 'Citra rebuild failed' }

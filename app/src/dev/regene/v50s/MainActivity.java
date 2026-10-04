@@ -18,7 +18,7 @@ public final class MainActivity extends Activity {
             + " · 가로 방향 유지: " + (Settings.canDrawOverlays(MainActivity.this) ? "허용" : "설정 필요")
             + "\n" + getSharedPreferences("controller",0).getString("status","에뮬레이터를 선택하세요.")
             + "\n" + GameControllers.status()
-            + "\nCitra 진단 최근 기록: " + getSharedPreferences("controller",0).getString("citra_diagnostic","설정 필요"));
+            );
         handler.postDelayed(this,1000);
     }};
     boolean usageAllowed() {
@@ -40,10 +40,9 @@ public final class MainActivity extends Activity {
         button(root,"시스템 설정 변경 허용",()->startActivity(new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,Uri.parse("package:"+getPackageName()))));
         button(root,"가로 방향 유지 허용",()->startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,Uri.parse("package:"+getPackageName()))));
         TextView guardHint=new TextView(this);guardHint.setText("DraStic 등의 방향 요청을 맞추려면 다른 앱 위 표시 권한이 필요합니다. 게임 터치는 가리지 않습니다.");root.addView(guardHint);
-        String[][] apps = {{"Citra","org.citra.emu"},{"Citra 시험판","org.citra.rgn"},{"melonDS","me.magnum.melonds"},{"DraStic","com.dsemu.drastic"},{"Azahar · 호환성 검증 중","org.azahar_emu.azahar"},{"Azahar 시험판","org.azahar_emu.azahar.regeneprobe"},{"melonDS 시험판","me.magnum.melonds.regeneprobe"}};
+        String[][] apps = {{"Citra","org.citra.rgn"},{"Azahar","org.azahar_emu.azahar.regeneprobe"},{"melonDS","me.magnum.melonds.regeneprobe"},{"DraStic","com.dsemu.drastic"}};
         for (String[] app:apps) {
             Intent launch = getPackageManager().getLaunchIntentForPackage(app[1]);
-            if((app[1].endsWith(".regeneprobe") || "org.citra.rgn".equals(app[1])) && launch==null)continue;
             Button b = button(root, app[0]+(launch==null ? " · 미설치" : " 실행"),()->{
                 if (!usageAllowed() || !Settings.System.canWrite(this) || !Settings.canDrawOverlays(this)) {
                     Toast.makeText(this,"앱 사용 정보, 시스템 설정 변경, 가로 방향 유지 권한을 먼저 허용하세요.",Toast.LENGTH_LONG).show(); return;
@@ -53,20 +52,9 @@ public final class MainActivity extends Activity {
             }); b.setEnabled(launch!=null);
         }
         button(root,"자동 제어 중지",()->stopService(new Intent(this,ControllerService.class)));
-        button(root,"Citra 버튼 상태 진단 허용",()->startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)));
-        button(root,"Citra 가상패드 숨김 시험",()->citraTrial(true));
-        button(root,"Citra 가상패드 시험 종료·복원",()->citraTrial(false));
-        TextView diagnosticHint=new TextView(this); diagnosticHint.setText("ReGene · Citra 버튼 상태 진단을 켜면 실행 중 설정의 체크 상태를 읽습니다. 컨트롤러 연결 시 실행 중 설정을 조작합니다. 시험 버튼은 실제 연결 시험을 대신하지 않습니다."); root.addView(diagnosticHint);
-        TextView note = new TextView(this); note.setText("최초 시험 버전 · 게임 레이아웃은 각 에뮬레이터에 저장된 설정을 사용합니다. 가로 방향은 듀얼스크린이 위로 오도록 맞춰 주세요."); root.addView(note);
+        button(root,"Citra 패드 자동 숨김 권한",()->startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)));
+        TextView note = new TextView(this); note.setText("가로로 돌리면 커버에는 상단 화면, 본체에는 하단 화면이 표시됩니다. 패드를 연결하면 가상패드가 자동으로 숨겨집니다."); root.addView(note);
         ScrollView scroll = new ScrollView(this); scroll.addView(root); setContentView(scroll);
-    }
-    private void citraTrial(boolean hide) {
-        getSharedPreferences("controller",0).edit().putBoolean("citra_test_mode",hide).apply();
-        Intent launch=getPackageManager().getLaunchIntentForPackage("org.citra.emu");
-        if(launch!=null) {
-            startForegroundService(new Intent(this,ControllerService.class).putExtra("package","org.citra.emu"));
-            startActivity(launch);
-        }
     }
     private Button button(LinearLayout root,String text,Runnable action) { Button b=new Button(this); b.setText(text); b.setOnClickListener(v->action.run()); root.addView(b); return b; }
     @Override public void onResume() {super.onResume();handler.post(refresh);}

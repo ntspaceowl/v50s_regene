@@ -128,8 +128,8 @@ public final class ControllerService extends Service implements SensorEventListe
                     else {lg.set(true);lastSet=now;attempts++;status("상단/하단 확장 요청 "+attempts+" · "+selected);}
                 }
             } else if(now>launchUntil || !foreground.equals(getPackageName())) {
+                if(lg.enabled())lg.set(false);
                 guard.disable();
-                if(lg.enabled() && ownsRotation)lg.set(false);
                 if(ownsRotation)restoreRotation();
                 String reason;
                 if(!selected.equals(foreground))reason="다른 앱 사용 중: 화면 배치 대기";
@@ -143,6 +143,6 @@ public final class ControllerService extends Service implements SensorEventListe
         } catch(Exception e) {fail(e);handler.removeCallbacks(this);stopSelf();return;}
         handler.postDelayed(this,650);
     }};
-    @Override public void onDestroy(){prefs.edit().putBoolean("controller_running",false).apply();handler.removeCallbacks(tick);if(sensors!=null)sensors.unregisterListener(this);try{if(guard!=null)guard.disable();if(lg!=null && ownsRotation)lg.set(false);restoreRotation();}catch(Exception e){fail(e);}status("자동 제어 중지됨");super.onDestroy();}
+    @Override public void onDestroy(){prefs.edit().putBoolean("controller_running",false).apply();handler.removeCallbacks(tick);if(sensors!=null)sensors.unregisterListener(this);try{if(lg!=null)lg.set(false);if(guard!=null)guard.disable();restoreRotation();}catch(Exception e){fail(e);}status("자동 제어 중지됨");super.onDestroy();}
     @Override public IBinder onBind(Intent intent){return null;}
 }

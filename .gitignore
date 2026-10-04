@@ -4,3 +4,4 @@ drivers/
 backups/
 test-results/
 app/build/
+releases/*.apk
