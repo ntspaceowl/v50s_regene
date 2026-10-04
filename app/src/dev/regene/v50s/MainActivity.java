@@ -35,6 +35,8 @@ public final class MainActivity extends Activity {
         TextView rotationHint=new TextView(this);rotationHint.setText("끄면 가로 배치를 유지합니다.");root.addView(rotationHint);
         button(root,"앱 사용 정보 허용",()->startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS,Uri.parse("package:"+getPackageName()))));
         button(root,"시스템 설정 변경 허용",()->startActivity(new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,Uri.parse("package:"+getPackageName()))));
+        button(root,"가로 방향 유지 허용",()->startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,Uri.parse("package:"+getPackageName()))));
+        TextView guardHint=new TextView(this);guardHint.setText("DraStic 등의 방향 요청을 맞추려면 다른 앱 위 표시 권한이 필요합니다. 게임 터치는 가리지 않습니다.");root.addView(guardHint);
         String[][] apps = {{"Citra","org.citra.emu"},{"melonDS","me.magnum.melonds"},{"DraStic","com.dsemu.drastic"},{"Azahar · 호환성 검증 중","org.azahar_emu.azahar"}};
         for (String[] app:apps) {
             Intent launch = getPackageManager().getLaunchIntentForPackage(app[1]);

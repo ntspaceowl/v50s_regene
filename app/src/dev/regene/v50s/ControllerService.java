@@ -18,6 +18,7 @@ public final class ControllerService extends Service implements SensorEventListe
     private LgWide lg;
     private boolean ownsRotation;
     private int oldRotation,oldAuto;
+    private OrientationGuard guard;
     private SensorManager sensors;
     private RotationPolicy pose;
     private boolean settledPose;
@@ -25,6 +26,8 @@ public final class ControllerService extends Service implements SensorEventListe
     private android.content.SharedPreferences prefs;
     @Override public void onCreate() {
         super.onCreate(); prefs=getSharedPreferences("controller",0);
+        guard=new OrientationGuard(this);
+        try {lg=new LgWide(this);} catch(Exception e) {fail(e);stopSelf();return;}
         NotificationManager nm=getSystemService(NotificationManager.class);
         nm.createNotificationChannel(new NotificationChannel("session","듀얼스크린 제어",NotificationManager.IMPORTANCE_LOW));
         Intent stop=new Intent(this,ControllerService.class).setAction("STOP");
@@ -33,6 +36,7 @@ public final class ControllerService extends Service implements SensorEventListe
             .setContentTitle("ReGene 자동 제어 중").setContentText("듀얼스크린 상단 · 본체 하단")
             .addAction(new Notification.Action.Builder(null,"중지",stopIntent).build()).build());
         if(prefs.getBoolean("restore_pending",false)) {
+            try {if(lg.enabled())lg.set(false);} catch(Exception e) {fail(e);stopSelf();return;}
             oldRotation=prefs.getInt("old_rotation",0);oldAuto=prefs.getInt("old_auto",1);ownsRotation=true;
             restoreRotation();
         }
@@ -45,7 +49,7 @@ public final class ControllerService extends Service implements SensorEventListe
         if(gravity==null)gravity=sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         if(gravity!=null)sensors.registerListener(this,gravity,SensorManager.SENSOR_DELAY_NORMAL);
         else status("자세 센서 없음: 자동 배치를 끄고 가로 배치를 사용할 수 있습니다.");
-        try {lg=new LgWide(this);status("LG 화면 제어 연결됨");} catch(Exception e) {fail(e);stopSelf();}
+        status("LG 화면 제어 연결됨");
     }
     @Override public int onStartCommand(Intent intent,int flags,int id) {
         if(intent==null || "STOP".equals(intent.getAction())) {stopSelf();return START_NOT_STICKY;}
@@ -98,6 +102,7 @@ public final class ControllerService extends Service implements SensorEventListe
             boolean active=selected.equals(foreground) && game && now-activitySince>=2500 && cover && landscape && getSystemService(PowerManager.class).isInteractive();
             if(active) {
                 saveRotation();
+                guard.enable();
                 if(Settings.System.getInt(getContentResolver(),Settings.System.ACCELEROMETER_ROTATION,1)!=0)
                     Settings.System.putInt(getContentResolver(),Settings.System.ACCELEROMETER_ROTATION,0);
                 if(Settings.System.getInt(getContentResolver(),Settings.System.USER_ROTATION,0)!=3)
@@ -108,12 +113,13 @@ public final class ControllerService extends Service implements SensorEventListe
                     else {lg.set(true);lastSet=now;attempts++;status("상단/하단 확장 요청 "+attempts+" · "+selected);}
                 }
             } else if(now>launchUntil || !foreground.equals(getPackageName())) {
+                guard.disable();
                 if(lg.enabled() && ownsRotation)lg.set(false);
                 if(ownsRotation){restoreRotation();status("대상 앱 밖: 원래 화면 설정 복원");}
             }
         } catch(Exception e) {fail(e);handler.removeCallbacks(this);stopSelf();return;}
         handler.postDelayed(this,650);
     }};
-    @Override public void onDestroy(){handler.removeCallbacks(tick);if(sensors!=null)sensors.unregisterListener(this);try{if(lg!=null && ownsRotation)lg.set(false);restoreRotation();}catch(Exception e){fail(e);}status("자동 제어 중지됨");super.onDestroy();}
+    @Override public void onDestroy(){handler.removeCallbacks(tick);if(sensors!=null)sensors.unregisterListener(this);try{if(guard!=null)guard.disable();if(lg!=null && ownsRotation)lg.set(false);restoreRotation();}catch(Exception e){fail(e);}status("자동 제어 중지됨");super.onDestroy();}
     @Override public IBinder onBind(Intent intent){return null;}
 }
