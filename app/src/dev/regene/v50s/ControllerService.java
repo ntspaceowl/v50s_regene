@@ -25,6 +25,7 @@ public final class ControllerService extends Service implements SensorEventListe
     private boolean settledPose;
     private long poseChangedAt;
     private android.content.SharedPreferences prefs;
+    private String idleStatus;
     @Override public void onCreate() {
         super.onCreate(); prefs=getSharedPreferences("controller",0);
         guard=new OrientationGuard(this);
@@ -115,7 +116,10 @@ public final class ControllerService extends Service implements SensorEventListe
                     Settings.System.putInt(getContentResolver(),Settings.System.ACCELEROMETER_ROTATION,0);
                 if(Settings.System.getInt(getContentResolver(),Settings.System.USER_ROTATION,0)!=3)
                     Settings.System.putInt(getContentResolver(),Settings.System.USER_ROTATION,3);
-                if(!lg.enabled() && now>=cooldown && now-lastSet>1000) {
+                boolean wide=lg.enabled();
+                if(wide && idleStatus!=null)status("두 화면 배치 유지 · "+selected);
+                idleStatus=null;
+                if(!wide && now>=cooldown && now-lastSet>1000) {
                     if(now-budgetStart>15000){attempts=0;budgetStart=now;}
                     if(attempts>=6){cooldown=now+60000;status("화면 확장이 반복 해제되어 60초 대기합니다.");}
                     else {lg.set(true);lastSet=now;attempts++;status("상단/하단 확장 요청 "+attempts+" · "+selected);}
@@ -123,7 +127,15 @@ public final class ControllerService extends Service implements SensorEventListe
             } else if(now>launchUntil || !foreground.equals(getPackageName())) {
                 guard.disable();
                 if(lg.enabled() && ownsRotation)lg.set(false);
-                if(ownsRotation){restoreRotation();status("대상 앱 밖: 원래 화면 설정 복원");}
+                if(ownsRotation)restoreRotation();
+                String reason;
+                if(!selected.equals(foreground))reason="다른 앱 사용 중: 화면 배치 대기";
+                else if(!(game || layoutEditor))reason="게임 또는 레이아웃 편집 화면 대기";
+                else if(!getSystemService(PowerManager.class).isInteractive())reason="화면 꺼짐: 화면 배치 대기";
+                else if(!cover)reason="듀얼스크린이 켜지면 화면 배치를 재개합니다.";
+                else if(!landscape)reason="가로 자세 감지 대기: 폰을 들어 가로로 돌려주세요.";
+                else reason="게임 화면 준비 중";
+                if(!reason.equals(idleStatus)){idleStatus=reason;status(reason);}
             }
         } catch(Exception e) {fail(e);handler.removeCallbacks(this);stopSelf();return;}
         handler.postDelayed(this,650);
