@@ -108,8 +108,9 @@ public final class ControllerService extends Service implements SensorEventListe
             if(SystemClock.elapsedRealtime()-poseChangedAt>600)settledPose=pose.landscape();
             boolean landscape=!prefs.getBoolean("auto_pose",true) || settledPose;
             boolean game=activity.endsWith(".EmulationActivity") || activity.endsWith(".EmulatorActivity") || activity.endsWith(".DraSticEmuActivity");
-            boolean layoutEditor=("me.magnum.melonds".equals(foreground) || "me.magnum.melonds.regeneprobe".equals(foreground))
-                && activity.endsWith(".LayoutEditorActivity");
+            boolean layoutEditor=(("me.magnum.melonds".equals(foreground) || "me.magnum.melonds.regeneprobe".equals(foreground))
+                && activity.endsWith(".LayoutEditorActivity"))
+                || ("com.dsemu.drastic".equals(foreground) && "com.dsemu.drastic.ui.Customizer".equals(activity));
             boolean active=selected.equals(foreground) && (game || layoutEditor) && now-activitySince>=2500 && cover && landscape && getSystemService(PowerManager.class).isInteractive();
             if(active) {
                 saveRotation();
