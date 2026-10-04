@@ -86,3 +86,5 @@ KEYCODE_SLEEP 뒤 dumpsys power의 Asleep, KEYCODE_WAKEUP 뒤 Awake를 확인했
 Azahar 물리 조작 성공 응답 뒤 ReGene의 MELONDS 시험판 실행 버튼으로 기존 HG 게임에 복귀했다. Bluetooth STATE_CONNECTED, MX FLEX DUO 입력 장치13, melonDS PID18692 유지 상태다. 초기 일반 가로 화면은 `melon-bt-physical-ready.png`, 확장 후 안정된2340×2160 상·하 게임 영상은 `melon-bt-physical-ready-settled.png`다. 후속 ReGene 상태는 해당 EmulatorActivity의 확장 요청1이다.
 
 확장 캡처에서 일반 패드와 부가 가상 버튼이 모두 없고, 두 DS 게임 영상과 게임 자체의 분홍색 터치 버튼은 유지됐다. 따라서 실제 연결 중 전체 가상 버튼 숨김을 확인했다. 이 시점 본체 손가락 터치, 실제 패드 입력, 세로/가로 재회전, 연결 해제·재연결은 사용자에게 한 묶음으로 요청했으며 결과 대기 중이다. 게임 자체의 터치 버튼은 숨김 대상인 에뮬레이터 가상패드가 아니다.
+
+후속 사용자 응답은 “1 2 3 4 전부 성공”이었다. 실제 커버=상단/본체=하단과 손가락 게임 터치, 패드 조작, 세로→가로 자동 복구, 연결 해제 후 버튼 복원 및 재연결 후 전체 숨김이 요청 범위에서 통과했다. 실제 입력 로그 melon-physical-batch-input.log와 조작 후 캡처 melon-physical-batch-after-buttons.png를 보존했다. 세로/가로 감지는19:22:44.391/19:22:47.404, 재확장19:22:48.381, Bluetooth 분리/연결은19:22:57.512/19:23:02.457이고 PID18692가 유지됐다. 끊긴 짧은 구간의 캡처는 없으며 버튼 복원은 사용자의 실제 관찰로 확인했다. 커버 분리/재연결, PC 없이 실행, USB-C 및 여러 컨트롤러는 여전히 미검증이다.

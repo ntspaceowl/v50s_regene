@@ -62,3 +62,11 @@ Virtual Gamepad → Menu-Button Position에는 Bottom/Top/Left/Right/**Hidden** 
 또한 설치 바이트코드 전체에서 Android InputDeviceListener의 추가/분리 콜백은 찾지 못했다. 위 판정은 레이아웃 초기화의 `u`에서 이루어지며, 렌더러 초기화 `q`가 이를 호출한다. 연결/해제 즉시 다시 판정하는 다른 경로가 있는지와 설정/HOME 복귀 시 재평가되는지는 실기기로 확인해야 한다. `DraSticEmuActivity.onKeyDown`의 BACK은 기본적으로 게임 Activity를 종료하거나 무시하며, MENU와 동일하지 않다. ReGene의 GLOBAL_ACTION_BACK을 게임 메뉴 열기 수단으로 사용하지 않는다.
 
 다음 실기기 시험은 이 기본 옵션 경로를 먼저 확인한다. 아직 ReGene 자동화 코드나 원본 APK를 변경하지 않았고, 모든 가상 버튼 자동 숨김/복원 구현 완료로 판단하지 않는다.
+
+## 실제 컨트롤러 매핑과 사용자 일괄 시험 통과
+
+2026-10-04 후속: 비어 있던 첫 매핑 슬롯에 사용자가 기본 버튼을 매핑했고 Select Key Mapping=MX FLEX DUO를 확인했다. Disable mapped keys in overlay의 실제 체크박스는 ON이었다. MAP SPECIAL의 비어 있는 앞 네 항목을 SKIP하여 Open Menu를 준비했고 R3 클릭을 메뉴로 매핑하도록 요청했다. 기존의 다른 프로필은 변경하지 않았다.
+
+사용자는 요청한 네 항목을 모두 통과했다고 확인했다: R3 메뉴 매핑, 연결 중 기본 패드와 메뉴 삼각형 전체 숨김 및 커버=상단/본체=하단, 손가락 게임 터치와 A/B·방향키 입력, 컨트롤러 껐다 켤 때 가상 버튼·메뉴 복원 후 재숨김. 결과는 실제 사용자 관찰이며 ADB 입력으로 대신하지 않았다. 후속 foreground는 DraSticEmuActivity이고 rotation3 확장 상태였다. 캡처: test-results/2026-10-04/drastic-user-all-pass.png.
+
+현재 구성은 원본 DraStic의 기본 옵션과 매핑으로 동작하며 별도 APK 수정이 필요하지 않았다. 활성 Special Button I/II/III, 원래 수동 숨김 상태, 여러 컨트롤러와 실제 USB-C 컨트롤러까지 통과했다고 확대하지 않는다. 커버 재연결과 PC 연결 없이 실행은 별도 시험이 남아 있다. 위의 None/OFF 및 미검증 설명은 당시의 초기 조사 상태다.

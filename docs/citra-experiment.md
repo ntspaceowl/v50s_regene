@@ -81,3 +81,15 @@ checked 목표 상태 확인 → BACK 요청 뒤 별도 stage4에서 Hide Input 
 0.1.6/code7 빌드, v2/v3 서명 확인, 설치 후 명시적 시험 버튼으로 다시 확인했다. 숨김 로그17:18:43 닫힘 대기 →17:18:44 닫힘/숨김 확인, 복원 로그17:19:38 닫힘 대기 →17:19:39 닫힘/복원 확인. 캡처 citra-016-close-confirm-hide.png / citra-016-close-confirm-restore.png에서 설정 메뉴가 사라진 뒤 각각 전체 패드 제거/재표시를 확인했다. Citra PID22161 유지 및 두 게임 영상 유지. 종료 후 test_mode=false/owned=false 확인.
 
 APK SHA-256 C7A48E66A9018DFBF224999BE5C95ACAD2599262A3E237667DAAF3FF1559E8A9. 실제 물리 장치 및 미확인 대화상자/사용자 개입, 회전·커버·PC 없이 실행은 여전히 별도 검증 대상이다.
+
+## 실제 물리 시험: 세 항목 통과, 컨트롤러 제거 시 충돌
+
+2026-10-04 후속 실제 설치본 org.citra.emu/MMJ20251112 시험에서 사용자는 패드 방향/확인/취소, 커버=상단·본체=하단과 손가락 터치, 세로→가로 복귀의1·2·3을 통과했다고 확인했다. 네 번째 컨트롤러 껐다 켜기에서는 게임이 종료되고 Citra 목록으로 돌아왔다. 따라서 Citra 연결 해제 자동 복원은 실패다.
+
+정상 게임 PID22321에서19:26:48.302 입력 장치 구성 변경0x60이 발생했고19:26:48.827 EmulationActivity relaunch의 finishDrawing,19:26:49.092 NativeEmulation 스레드 SIGSEGV가 이어졌다. 새로운 PID22585는 MainActivity였다. ReGene의 합성 BACK 입력은19:26:49.170으로 fatal 뒤였다. 해당 관측의 직접 충돌을 이 BACK 입력이 먼저 유발했다고 볼 수 없다.
+
+설치 APK의 EmulationActivity configChanges는0xD80(orientation/screenSize/screenLayout/smallestScreenSize)이며 keyboardHidden=0x20와 navigation=0x40을 처리하지 않는다. 컨트롤러 제거로 두 비트가 바뀌어 게임 Activity를 재생성했고 네이티브 실행과 충돌한 것이 유력한 원인이다. 수정 후보는 keyboard/keyboardHidden/navigation 변경을 Activity에서 처리하도록 선언하는 것이다. 이 후보를 아직 빌드·설치하거나 해결됐다고 확인하지 않았다. 최초 별도 실행의 IsSearchingForAmiibos 충돌은 다른 스택이며 동일 원인으로 단정하지 않는다.
+
+증거: citra-physical-batch-input.log, citra-physical-batch-observed.png, citra-controller-disconnect-crash.log, citra-controller-disconnect-regene.log, citra-relaunch-disconnect-sequence.log, citra-connected-launch-crash.log (test-results/2026-10-04). 복원 소유권 citra_hide_owned=true는 유지하며 원래 수동 설정을 무시하고 기록을 지우지 않는다.
+
+후속: app/build-citra-controller-probe.ps1로 기존 설치 APK 기반 분리 시험판을 빌드했다. 동작 수정은 EmulationActivity configChanges에 keyboard/keyboardHidden/navigation 추가(0xDF0)이며, 시험 격리를 위해 패키지를 org.citra.rgn, provider authority를 해당 패키지로, 공용 사용자 폴더 리터럴을 citra-rgn으로 바꿨다. Java/JNI 클래스 이름은 유지한다. 다섯 네이티브 라이브러리는 원본 APK와 바이트 단위로 같고 v2/v3 서명 검증에 통과했다. APK SHA256 EE5C2C5B9CD4B7595F665E39B1B141F36B82DDF9995595658C5F3A899592BEA3. 현재 PC 분리 시험을 방해하지 않도록 설치하지 않았다. 별도 폴더와 네이티브 경로의 런타임 확인, ReGene 시험판 선택·숨김 연동 및 실제 연결 해제 재시험은 남아 있다. 빌드 성공을 충돌 해결로 간주하지 않는다.
