@@ -72,3 +72,11 @@ PID18692에서 설정 진입/복귀 후 상단 영상이 출력됐다. 이어 �
 KEYCODE_SLEEP 뒤 dumpsys power의 Asleep, KEYCODE_WAKEUP 뒤 Awake를 확인했다. PID18692가 유지됐으며 두 게임 영상과 배치가 그대로 나왔다. `melonds-clean-wake-return.png`. 복귀 후 하단 게임의 터치 안내 위치(1520,1980)에 1100ms 입력을 두 번 보냈고 설명이 다음 문장으로 진행됐다. `melonds-clean-wake-touch.png`. 두 입력 중 어느 입력부터 수신됐는지는 이 시험으로 구분하지 않았으므로 첫 터치 즉시 응답이나 실제 손가락 터치 통과를 주장하지 않는다.
 
 물리 회전/커버 개폐/USB 디버깅 없이 실행/게임패드 연결·해제 검증은 여전히 남아 있다.
+
+## 실제 Bluetooth 시험 준비와 기본 매핑 확인
+
+2026-10-04 후속 조사에서 설치 시험판의 files 목록에 controller_config.json이 없었다. SharedPreferencesSettingsRepository는 이 파일을 읽지 못하면 DefaultControllerConfigurationFactory로 기본 매핑을 생성한다. 기본값은 오른쪽 얼굴 버튼(keyCode97)을 A, 아래 얼굴 버튼(96)을 B, HAT_X/Y 및 왼쪽 스틱 X/Y를 방향키, L1/R1을 L/R, START/SELECT를 해당 DS 입력에 연결한다. 이는 앞서 Azahar에서 실제 MX FLEX DUO 입력으로 확인한 버튼/축과 일치하므로 다음 melonDS 시험은 재매핑 요청 없이 기본값의 실제 동작부터 확인한다. 소스와 저장 상태의 일치이며 실제 melonDS 버튼 입력 성공 증거는 아니다.
+
+앞선 melonDS 실행 시도에서 가상패드가 보인 캡처는 연결 시험 실패로 판정하지 않는다. 당시 Bluetooth 로그에 연결 해제 이벤트가 있었고 후속 입력 장치 목록에 MX FLEX DUO가 없었다. 사용자가 무입력 시 컨트롤러가 자동으로 꺼진다고 확인했으므로, 앱을 먼저 준비하고 짧은 조작을 묶어 요청한 상태에서 연결 여부와 숨김을 함께 확인해야 한다. 앱이 컨트롤러 연결을 끊었다는 증거는 없다.
+
+다음 확인 범위는 실제 연결 중 모든 가상 버튼 숨김, 기본 매핑의 방향/확인/취소, 본체 게임 터치, 마지막 장치 분리 시 이전 표시 복원이다. Azahar의 물리 회전 시험 요청이 진행 중이므로 현재 게임 화면을 바꾸지 않고 PC에서 이 준비만 수행했다.
