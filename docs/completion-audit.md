@@ -23,3 +23,10 @@
 사용자가 최대 배치의melonDS와Azahar를 통과 확인했다. Citra는화면 잘림과확장잔류를 보고했으며, 2026-10-04-usability-fixes.md의후속수정을 적용했다. 직접 휴대폰에서sha256sum으로조회한Citra APK는E4F69DC34A2B6EAC0853FD1F6D411C193AAB294BC8CC8A20E921AE54CBD2A8D5로최종빌드와일치한다. PID10269가유지됐고ReGene auto_pose=true, Citra 게임전경, 가로자세대기상태다. 이점검시점패드장치는조회되지않았다. 휴대폰의이번작업PNG/XML과PC test-results파일이남지않은것도확인했다. 요청한Citra 세항목의사용자결과는대기중이다.
 
 이전crash buffer를재검토하면서20:47:19.998 Azahar PID3300의NativeEmulation SIGSEGV도확인했다. backtrace는EmuWindow_Android::MakeCurrent()+4, 직전원인은EmuWindow_Android_OpenGL 생성자의eglMakeCurrent 실패다. 로그만으로사용자의어떤조작이유발했는지는확정할수없다. 기존화면·입력통과결과를취소하지않되, 반복실행/재진입안정성을완료로간주하지않는다. Java onNewIntent가엔진중지후다시시작하는경로와초기Surface교체를추가재현대상으로확인했다. 아직이현상을수정했다고주장하지않으며, Citra사용자시험을방해하지않기위해현재폰의앱전환은하지않았다.
+
+## 최종 사용자 응답 및 추가 자동 점검
+
+사용자의 최신 '통과'는 Citra 화면 비율·잘림 수정과 종료 후 확장 해제에 대한 확인이다. 이전 BT 입력·숨김·복원 통과는 유지하며 반복 수동 시험을 요구하지 않았다. 앞 절의 Citra 결과 대기 상태는 이 기록으로 대체한다.
+
+Azahar PID11282에서 새 게임 실행, ReGene를 통한 기존 게임 복귀, 정상 종료 및 다시 게임 실행을 확인했다. 첫 종료 후 MainActivity가 빈 화면으로 남았으며 HOME 후 목록 재진입으로 복구됐다. 두 번째 실행·종료는 목록으로 정상 복귀했다. 이 시험 중 새 native fatal은 관찰되지 않았으나 이전 EGL 초기화 충돌을 수정했다는 근거는 없다. 간헐 목록 빈 화면과 초기화 안정성은 미해결로 기록한다. 임시 UI XML과 화면 캡처는 점검 후 정리했고 폰은 ReGene 목록으로 돌려놓았다.
+
