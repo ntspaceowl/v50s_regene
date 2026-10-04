@@ -53,9 +53,19 @@ public final class MainActivity extends Activity {
         }
         button(root,"자동 제어 중지",()->stopService(new Intent(this,ControllerService.class)));
         button(root,"Citra 버튼 상태 진단 허용",()->startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)));
-        TextView diagnosticHint=new TextView(this); diagnosticHint.setText("ReGene · Citra 버튼 상태 진단을 켜면 실행 중 설정의 체크 상태를 읽습니다. 자동 숨김은 아직 시험 전입니다."); root.addView(diagnosticHint);
+        button(root,"Citra 가상패드 숨김 시험",()->citraTrial(true));
+        button(root,"Citra 가상패드 시험 종료·복원",()->citraTrial(false));
+        TextView diagnosticHint=new TextView(this); diagnosticHint.setText("ReGene · Citra 버튼 상태 진단을 켜면 실행 중 설정의 체크 상태를 읽습니다. 컨트롤러 연결 시 실행 중 설정을 조작합니다. 시험 버튼은 실제 연결 시험을 대신하지 않습니다."); root.addView(diagnosticHint);
         TextView note = new TextView(this); note.setText("최초 시험 버전 · 게임 레이아웃은 각 에뮬레이터에 저장된 설정을 사용합니다. 가로 방향은 듀얼스크린이 위로 오도록 맞춰 주세요."); root.addView(note);
         ScrollView scroll = new ScrollView(this); scroll.addView(root); setContentView(scroll);
+    }
+    private void citraTrial(boolean hide) {
+        getSharedPreferences("controller",0).edit().putBoolean("citra_test_mode",hide).apply();
+        Intent launch=getPackageManager().getLaunchIntentForPackage("org.citra.emu");
+        if(launch!=null) {
+            startForegroundService(new Intent(this,ControllerService.class).putExtra("package","org.citra.emu"));
+            startActivity(launch);
+        }
     }
     private Button button(LinearLayout root,String text,Runnable action) { Button b=new Button(this); b.setText(text); b.setOnClickListener(v->action.run()); root.addView(b); return b; }
     @Override public void onResume() {super.onResume();handler.post(refresh);}

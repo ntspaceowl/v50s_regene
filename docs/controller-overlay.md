@@ -25,3 +25,6 @@ melonDS 분리 시험판에도 물리 장치 리스너 기반 임시 전체 숨�
 
 
 Citra 기존 설치본 후속: 실행 중 Settings → Hide Input Buttons 체크박스로 전체 가상패드 숨김 및 다시 표시를 수동으로 확인했다. PID22161 및 두 게임 영상이 유지됐고 최종 수동 상태를 원래 OFF로 돌렸다. companion 자동 제어 후보이나 AccessibilityService 노드/checked 상태 검증, 물리 장치 이벤트, 숨김 중 터치, 이전 상태 복원 자동화는 아직 미구현이다. details: citra-experiment.md.
+
+
+ReGene0.1.5 후속: Citra 메뉴의 접근성 체크 상태 읽기와 ACTION_CLICK 기반 전체 숨김·복원을 구현했다. 제어앱의 명시적 시험 버튼으로 OFF→ON→OFF 및 패드 전체 제거/재표시, Citra PID22161 유지와 두 게임 영상 유지를 확인했다. 최종 시험 모드/복원 소유권은 모두 false다. 실제 BT/USB-C 장치 이벤트와 최초 수동 숨김 유지 등은 미검증이며 이전에 적힌 미구현 상태는0.1.5 이전의 기록이다.

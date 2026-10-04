@@ -48,3 +48,14 @@ CitraDiagnosticService를 추가했다. 서비스 XML의 이벤트 대상은 org
 실행 중 Citra Settings를 열어 ReGene 로그에서 16:59:17 OFF를 읽었다. ADB로 같은 설정 체크박스를 수동 조작해 16:59:57 ON, 다시 원래 상태로 되돌려17:00:00 OFF를 읽었다. Citra PID22161 유지. 이번 결과는 체크 상태 읽기의 OFF→ON→OFF 실기 검증이며, 서비스가 자동 클릭한 시험이나 물리 게임패드 이벤트 검증은 아니다. Citra 설정은 최종 OFF로 복원하고 창을 닫았다.
 
 APK SHA-256: 401D02631A387520D5BB3FED96EB7AC5AF887921CBE7EA43AC01CEA86E6F8B9A. 진단은 활성화돼 있으며 실제 자동 숨김·복원 구현과 숨김 중 하단 터치 검증은 다음 단계다.
+
+
+## ReGene 0.1.5 기존 Citra의 메뉴 자동 조작
+
+ControllerService가 선택 앱/실행 여부/현재 Activity를 게시하고, Citra 서비스는 선택된 Citra EmulationActivity 및 활성 Citra 창일 때만 조작한다. 외부의 활성·비가상 GAMEPAD/JOYSTICK 장치 또는 명시적인 시험 모드에서 숨김을 요청한다. 버튼 상태는 체크박스를 읽고 semantic ACTION_CLICK으로 변경하며 고정 화면 좌표는 코드에 사용하지 않는다. BACK으로 메뉴 → Settings → Hide Input Buttons를 조작하고, checked 목표 상태가 확인된 뒤 설정 창을 닫는다. 기존 Settings/편집 화면이 열린 경우에는 시작을 미룬다. 다른 게임 내 대화상자 및 작업 중 사용자 개입 검증은 남았다.
+
+처음 OFF에서 숨기는 경우에만 citra_hide_owned 복원 기록을 클릭 전에 commit한다. 이미 ON인 경우 복원 소유권을 얻지 않는다. 마지막 장치가 분리되면 소유한 변경만 OFF로 되돌린다. 앱 밖에서는 조작하지 않고 복원 기록을 유지해 Citra로 돌아왔을 때 처리한다. 전체 흐름은12초 제한, 실패 후 같은 요청은60초 대기하며 장치/시험 모드 상태가 바뀌면 대기 상태를 재평가한다. 확인된 같은 요청으로 매초 설정을 다시 여는 동작은 생략한다.
+
+ReGene 0.1.5/code6 빌드와 v2/v3 서명 검증 뒤 설치했다. 제어앱의 Citra 가상패드 숨김 시험 버튼을 눌렀을 때 17:04:55 OFF →17:04:57 숨김 확인/ON 로그, 캡처 `citra-auto-hide-trial.png`에서 전체 패드가 사라졌다. owned=true/test_mode=true 확인. 시험 종료·복원 버튼을 눌렀을 때17:05:46 ON →17:05:47 OFF →17:05:48 복원 확인 로그와 `citra-auto-restore-trial.png`에서 가상패드 재표시를 확인했다. owned=false/test_mode=false로 종료했다. Citra PID22161가 유지되고 두 게임 영상이 계속 표시됐다.
+
+이 시험은 실제 외부 장치를 가장한 ADB 주입이 아니라 앱에 명시적으로 제공한 시험 버튼으로 같은 메뉴 제어 경로를 실행한 것이다. 물리 BT/USB-C 연결, 최초 수동 ON 유지, 숨김 중 하단 터치, 중간 사용자 개입/대화상자/중지·재시작 검증은 여전히 미완료다. 원본 Citra APK는 수정하지 않았다.

@@ -55,6 +55,7 @@ public final class ControllerService extends Service implements SensorEventListe
         if(intent==null || "STOP".equals(intent.getAction())) {stopSelf();return START_NOT_STICKY;}
         selected=intent.getStringExtra("package"); launchUntil=System.currentTimeMillis()+15000;
         if(selected==null || lg==null) {stopSelf();return START_NOT_STICKY;}
+        prefs.edit().putString("controller_selected",selected).putBoolean("controller_running",true).apply();
         handler.removeCallbacks(tick);handler.post(tick);return START_NOT_STICKY;
     }
     private void status(String message) {prefs.edit().putString("status",message).apply();Log.i("ReGene",message);}
@@ -92,6 +93,7 @@ public final class ControllerService extends Service implements SensorEventListe
             String screen=foreground+"/"+activity;
             if(!screen.equals(lastActivity)) {
                 lastActivity=screen;activitySince=now;attempts=0;budgetStart=now;cooldown=0;
+                prefs.edit().putString("foreground_screen",screen).apply();
                 Log.i("ReGene","Foreground="+screen);
             }
             boolean cover=false;
@@ -122,6 +124,6 @@ public final class ControllerService extends Service implements SensorEventListe
         } catch(Exception e) {fail(e);handler.removeCallbacks(this);stopSelf();return;}
         handler.postDelayed(this,650);
     }};
-    @Override public void onDestroy(){handler.removeCallbacks(tick);if(sensors!=null)sensors.unregisterListener(this);try{if(guard!=null)guard.disable();if(lg!=null && ownsRotation)lg.set(false);restoreRotation();}catch(Exception e){fail(e);}status("자동 제어 중지됨");super.onDestroy();}
+    @Override public void onDestroy(){prefs.edit().putBoolean("controller_running",false).apply();handler.removeCallbacks(tick);if(sensors!=null)sensors.unregisterListener(this);try{if(guard!=null)guard.disable();if(lg!=null && ownsRotation)lg.set(false);restoreRotation();}catch(Exception e){fail(e);}status("자동 제어 중지됨");super.onDestroy();}
     @Override public IBinder onBind(Intent intent){return null;}
 }
