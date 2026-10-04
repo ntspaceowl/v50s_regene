@@ -1,5 +1,5 @@
 diff --git a/app/src/main/java/me/magnum/melonds/ui/emulator/EmulatorActivity.kt b/app/src/main/java/me/magnum/melonds/ui/emulator/EmulatorActivity.kt
-index f2696f2..e80597e 100644
+index f2696f2..437945c 100644
 --- a/app/src/main/java/me/magnum/melonds/ui/emulator/EmulatorActivity.kt
 +++ b/app/src/main/java/me/magnum/melonds/ui/emulator/EmulatorActivity.kt
 @@ -33,6 +33,7 @@ import androidx.core.view.isGone
@@ -19,15 +19,7 @@ index f2696f2..e80597e 100644
                  updateRendererScreenAreas()
              }
  
-@@ -807,6 +808,7 @@ class EmulatorActivity : AppCompatActivity() {
-         }
-         val topView = binding.viewLayoutControls.getLayoutComponentView(topScreen)
-         val bottomView = binding.viewLayoutControls.getLayoutComponentView(bottomScreen)
-+        android.util.Log.i("ReGeneRenderProbe", "areas top=${topView?.getRect()} bottom=${bottomView?.getRect()} controls=${binding.viewLayoutControls.width}x${binding.viewLayoutControls.height}")
-         mainScreenRenderer.updateScreenAreas(
-             topView?.getRect(),
-             bottomView?.getRect(),
-@@ -1020,4 +1022,4 @@ class EmulatorActivity : AppCompatActivity() {
+@@ -1020,4 +1021,4 @@ class EmulatorActivity : AppCompatActivity() {
          frameRenderCoordinator.stop()
          presentation?.dismiss()
      }

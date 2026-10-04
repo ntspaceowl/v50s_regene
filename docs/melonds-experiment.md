@@ -1,5 +1,7 @@
 # melonDS Surface 교체 시험
 
+최신 설치 상태: 별도 시험판에는 EmulatorActivity의 doOnPreDraw 변경과 RuntimeLayoutView의 전체 패드 자동 숨김만 적용했다. Surface 교체 후보와 진단 로그는 제거했다. 아래는 원인 탐색 순서의 기록이며 최종 시험 결과는 마지막 절을 참조한다.
+
 ## 재현한 문제와 원인 후보
 
 원본 melonDS 2.0.1 GH에서 ReGene 확장 상태로 레이아웃을 편집하고 저장한 뒤 기존 게임으로 돌아오면 두 게임 영역이 검게 보였다. PID15578은 유지됐고 HOME/최근 앱 복귀로 영상이 회복됐다. 이는 해결 완료가 아니며 기존 findings.md에 재현 결과가 있다.
@@ -45,3 +47,19 @@ setupSoftInput의 handler.post를 viewLayoutControls.doOnPreDraw로 바꾸는 �
 후속 빌드는35초에 성공했고 서명 검증 후 설치했다. PID16397에서 설정 화면 진입/복귀 시 최종 top/bottom Rect가 x492/y50 또는1150/1280x960으로 전달되고 양쪽 영상이 출력됐다. 이어 게임 중 레이아웃 편집기로 들어가 L을 실제로 이동하여 저장했다. private layouts.json의 L y1228/131x131로 저장 변경을 확인했다. 게임 복귀 후 같은 PID16397에서 상하 영상, 본체 영역의 모든 버튼, 가상 A 및 모험의 목적에 대한 하단 터치가 정상 동작했다. 이 시험에서 HOME 우회 복구는 사용하지 않았다.
 
 증거: melonds-predraw-return-probe.log, melonds-predraw-editor-return.png, melonds-predraw-after-edit-input.png, melonds-predraw-after-edit-touch.png. 현재 설치본은 Surface 교체 후보와 doOnPreDraw 수정, 전체 패드 자동 숨김 후보, 진단 로그를 함께 포함한다. Surface 교체 후보만으로는 실패한 반면 doOnPreDraw 추가 후 두 복귀 경로가 통과했으므로 화면 배치 읽기 시점이 이번 실패에 직접 관련된 증거를 확보했다. 아직 반복 HOME/화면 꺼짐/실제 회전/컨트롤러 접속 시험을 통과한 최종 릴리스로 간주하지 않는다.
+
+## HOME 및 화면 꺼짐 시험
+
+같은 PID16397에서 HOME → 최근 앱 → melonDS Dev 카드 복귀를 시험했다. 복귀 직후에는 일반 세로 화면이었고 ReGene 지연 적용 뒤 2340x2160 상하 프로필로 돌아왔다. 하단 터치(1520,1980)로 모험 설명이 다음 문장으로 넘어갔다. 증거: melonds-predraw-home-settled.png, melonds-home-touch-advance.png.
+
+KEYCODE_SLEEP 후 dumpsys power의 mWakefulness=Asleep을 확인하고 KEYCODE_WAKEUP으로 Awake를 확인했다. 직후 두 차례 UI dump는 null root이며 window focus도 null이었다. keyguard showing=false지만 primary/external screen state는 TURNING_ON이었다. 이후 터치와 재확인에서 EmulatorActivity가 focus를 얻고 같은 PID16397의 상하 영상이 유지됐으며 하단 터치로 설명이 다음 문장으로 넘어갔다. 증거: melonds-predraw-wake.png, melonds-wake-touch-advance.png, melonds-home-wake-probe.log. 잠금/긴 절전/물리 전원 버튼의 모든 경로가 통과했다고 확대 해석하지 않는다.
+
+Surface 교체 변경은 단독으로 실패했고 doOnPreDraw에 직접 원인 증거가 있으므로, 수정 범위를 줄이기 위해 시험 소스의 EmulatorSurfaceView와 DSRenderer를 공식 버전으로 되돌리고 진단 로그를 제거했다. 이제 기능 변경은 EmulatorActivity의 doOnPreDraw 및 RuntimeLayoutView의 전체 가상패드 자동 숨김뿐이다. 기존 Surface 패치 파일은 실패한 후보의 기록으로 남겨두며 새 APK에는 적용하지 않는다. 정리한 빌드는 별도 시험해야 한다.
+
+## 최소 변경 빌드 결과
+
+정리한 빌드는29초에 성공했고 서명 검증 후 설치했다. APK SHA256 D7C43E3AF057A4BB52DDC13D5960EA031B8CBA8472C6FEB869DDEA9076D94481. 두 엔진 라이브러리 해시는 앞서 검증한 원본과 동일하다. 기능 변경은 두 Kotlin 파일이며 로컬 빌드 설정 변경은 시험 패키지/원본 네이티브 라이브러리 사용을 위한 것이다.
+
+PID18692에서 설정 진입/복귀 후 상단 영상이 출력됐다. 이어 레이아웃 편집기에서 L을 y1228에서1149로 실제 이동·저장하고 게임으로 복귀했다. 같은 PID18692의 상하 영상과 본체 가상패드를 확인했으며, 가상 A로 안내 메뉴에 진입하고 하단 모험의 목적(1150,1630)을 눌러 해당 설명으로 이동했다. Surface 교체 후보 없이도 이 경로가 통과했다. 증거: melonds-minimal-editor-return.png, melonds-minimal-after-edit-menu-settled.png, melonds-minimal-after-edit-touch.png. 타이틀→안내 전환 중 짧은 검은 화면은 후속 캡처에서 정상 메뉴로 넘어갔으며 지속적인 렌더 실패로 분류하지 않는다.
+
+최소 빌드의 HOME/절전 재시험과 실제 회전/물리 터치/커버/BT·USB-C 컨트롤러 시험은 남아 있다. 앞 절 PID16397의 HOME·절전 결과를 이 빌드의 직접 검증으로 대신하지 않는다.
