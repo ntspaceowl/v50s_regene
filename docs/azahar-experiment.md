@@ -8,6 +8,16 @@
 
 연결 해제 후 Settings에서 게임으로 복귀했을 때 기존 L/R, D-pad, 스틱, ABXY, START/SELECT가 다시 표시되고 상·하 영상과 PID29465를 유지했다 (`azahar-bt-disconnected-restored.png`). 이는 **설정 화면에서 분리된 뒤 게임 복귀 시 표시 복원**의 확인이다. 게임 도중 분리 즉시 복원이나 원래 수동 숨김 상태를 유지하는 경우의 실물 장치 시험은 아니다. 숨김 중 하단 터치도 이번 BT 시험에서 아직 확인하지 않았다.
 
+## 후속: 실물 자동 매핑과 연결 중 하단 터치
+
+사용자가 다시 연결한 MX FLEX DUO(device11)로 Auto-Map Controller의 오른쪽 face 버튼을 눌렀다. 앱 로그는 keyCode97 / Xbox layout / axis d-pad / device=MX FLEX DUO를 기록했고 설정 창이 닫혔다. SharedPreferences에 HostAxis97→guestA700,96→guestB701과 두 스틱 및 방향키축15/16 등의 매핑이 저장됐다. 원본 Azahar/Citra 설정과 분리된 시험판 설정이다.
+
+게임 복귀 후 사용자는 “상하좌우 다 잘돼”라고 확인했다. 해당 장치 getevent에서 HAT0X/HAT0Y 방향과 ABS_X 스틱 변화 및 중립 복귀도 관찰했다. 실물 방향 입력의 게임 동작은 사용자 확인과 장치 이벤트로 검증한 범위이며 모든 face/숄더/START/SELECT 버튼의 개별 게임 동작을 시험한 것은 아니다.
+
+STATE_CONNECTED와 전체 패드 숨김을 유지한 상태에서 ADB 하단 터치 홀드(1540,1500,1000ms)를 보냈다. 상단 제목과 하단 선택 테두리가 빈 파일1에서3으로 바뀌었다 (`azahar-bt-hidden-lower-touch-settled.png`). 바로 앞 짧은 tap 직후 캡처는 파일1 그대로였으므로 그 캡처를 성공 증거로 쓰지 않는다. PID29465와 상·하 영상, 표시 숨김이 유지됐다. 실제 손가락 터치와 물리 회전은 별도 검증이 필요하다.
+
+증거: `azahar-real-auto-map.log`, `azahar-after-real-auto-map.xml`, `azahar-bt-ready-mapped.png`, `azahar-real-controller-directions.png`, `azahar-bt-hidden-lower-touch-settled.png` (test-results/2026-10-04).
+
 ## 확인한 사실
 
 LM-V510N Android 12에서 일반 앱이 `DisplayManager.createVirtualDisplay`를 호출했다. 출력 Surface가 없는 가상 화면 생성 직후 LG 확장이 해제됐다. 같은 크기의 ImageReader Surface를 연결하고 프레임을 소비하면 가상 화면이 ON이었고 확장 상태와 2340×2160 크기가 유지됐다. 로그는 `test-results/2026-10-04/virtual-display-probe.log`에 있다.
