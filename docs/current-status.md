@@ -2,6 +2,14 @@
 
 ## 최신 사용자 보고 및 경계 보정
 
+후속 사용자가 네 앱 모두 화면 크기가 해결됐다고 확인했다. 이번 경계 보정의 사용자 확인은 통과로 갱신한다. 새 문제인DraStic 패드 미연결 시 가상패드 미표시는 연결 후 직접 재현했다. Android에게임패드 입력 장치가 없는 상태에서 소울실버의 일반 가상패드는 숨겨지고 메뉴만 남았다. 원형 메뉴의 기본 패드 표시 토글을 복원하자 방향키/ABXY/LR/Start/Select가 다시 표시됐다. 하트골드는 이미 표시 상태였다. 정상Quit 후 프로세스를 종료하고 소울실버를 새로 실행해 표시 상태 유지도 확인했다. 게임별 수동 표시 상태인_TouchMode_는 원본DraStic의 저장 방식이며 새 게임 기본값은0(패드 표시, 터치 활성)이다.
+
+사용자가 전역 설정을 요구하여DraStic 하트골드/소울실버의Landscape 1:1 게임별 배치를 각각Delete Game-specific Layout으로 제거했다. 전역 편집기의 패널 최대 배치는 유지했고 제거 후Global Layout 표기를 확인했다. 새 프로세스 소울실버 실행에서도 전역 화면 배치와 가상패드 표시가 확인됐다. Default Layout=Landscape 1:1, MX FLEX DUO 매핑 및cb_disablemapped checked=true는 유지한다. ROM/게임 세이브는 변경하지 않았다. 이번 작업 중 실제BT 재연결은 다시 시험하지 않았으며 이전BT 시험 기록과 설정 확인을 구분한다.
+
+Citra는config-mmj.ini 전역 배치이며config-games.ini에화면 배치/커스텀 화면 키가 없었다. Azahar config폴더는config.ini 하나뿐이다. melonDS는공유ReGene V50S 레이아웃이고 현재rom_data.json에게임별 레이아웃 지정이 없다. auto_pose=true, restore_pending=false로 복원했고 임시 작업 캡처/스크립트는 정리했다.
+
+작업 중FGA Accessibility stopped 알림은UI 진단 호출과 함께 관찰됐다. 활성 접근성 목록에는FGA TapperService가 있다. Android UiAutomation은기본적으로기존접근성서비스를억제하므로진단에의한FGA중단알림으로추정한다. FGA설정은변경하지않았다. 공식근거:https://developer.android.com/reference/android/app/UiAutomation#FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES
+
 네 앱 모두 커버 닫기·열기 문제없음은 사용자 통과다. 아래의 과거 '커버 미확인' 기록을 대체한다. 반면 최신 사진으로 Citra/Azahar 약1픽셀 하단 침범, melonDS 위쪽 침범, DraStic 큰 배치 오류가 보고되어 이전 화면 통과만으로 완료 처리하지 않는다.
 
 Citra/Azahar/melonDS 설정에 원래 비율을 유지한 높이1077과 경계 양쪽3픽셀 여유를 적용했다. 새 프로세스 실행 캡처2340×2160에서y1077..1082가 검은 경계임을 확인했다. DraStic는Landscape 1:1 선택으로 저장 최대 배치를 다시 사용하며 하트골드/소울실버, 정상 종료 뒤 새 프로세스 소울실버 실행을 확인했다. 기본 화면 모드Landscape 1:1 및3D2배는 유지했다. 이번 수정은 설정만 변경해 APK 버전은 동일하다. 상세는max-fit-profiles.md와drastic-max-fit.md의 후속 기록을 따른다.
