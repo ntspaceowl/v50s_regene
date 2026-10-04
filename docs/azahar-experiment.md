@@ -33,3 +33,16 @@ ReGene만으로 원본 Azahar가 해결됐다는 증거가 아니며, upstream�
 2026-10-04 후속 빌드에서 컨트롤러 감지로 가상패드를 제거하기 직전, 눌린 COMBO_BUTTON에 `ComboHelper.comboActivate(RELEASED)`를 보내는 보완을 포함했다. `:app:assembleVanillaDebug` 성공, APK v2 서명 검증 성공, 분리 시험 패키지 `org.azahar_emu.azahar.regeneprobe`에 `adb install -r` 성공. 원본 패키지는 별도로 유지됐다.
 
 APK SHA256: `7EF590E14862D67B1215A39D5F75F6A9E260478FD0EF061CDF18D17756C5339D`. 설치된 base.apk의 장치 SHA256도 같았다. 이전 기록의 조합 입력 보완 미설치는 이 APK로 해소됐다. 빌드/설치 확인이며 실제 조합 버튼을 누르는 도중 컨트롤러 연결 및 게임 런타임 검증은 아직 아니다. 실물 컨트롤러가 다시 연결되면 입력 매핑과 함께 시험해야 한다.
+
+## 새 APK의 실제 게임·복귀 시험
+
+동일 SHA APK를 ReGene의 Azahar 시험판 버튼으로 실행했다. PID29465, 격리 ROM `/sdcard/AzaharTest/Kirby.cci`, 격리 사용자 폴더로 시험했다. 초기 로딩에서는 검은 화면이 있었으나 이어서 상/하 영상이 출력됐다 (`azahar-combo-build-settled.png`). 현재 저장 좌표로 상단 게임은 위쪽, 하단 게임과 가상패드는 아래쪽이며 캡처 크기는2340×2160이다. 물리 패널별 사진은 아니다.
+
+- 하단 게임 안내창의 OK를 ADB 터치하여 다음 확인창으로 바뀜을 확인했다 (`azahar-new-build-lower-ok-touch.png`). StreetPass 등록은 아니요를 선택했다. 시험판의 빈 파일 메뉴만 사용했고 원본 세이브를 수정하지 않았다.
+- 게임 메뉴 Settings 진입으로 일반 화면으로 돌아갔다. BACK으로 설정과 서랍을 닫은 뒤 다시 확장됐고 하단 파일2 터치로 상단 표시/하단 선택이 파일1→파일2로 바뀌었다 (`azahar-after-settings-file2-touch.png`). PID29465 유지.
+- HOME 뒤 최근 앱의 Azahar 카드로 복귀했다. 두 영상과 패드 좌표가 유지됐고 하단 파일3 터치로 선택이2→3으로 바뀌었다 (`azahar-after-home-file3-touch.png`). PID29465 유지. 먼저 시도한 패키지 한정 MAIN/LAUNCHER Intent는 resolve 실패했으므로 그 명령을 성공 경로로 기록하지 않는다.
+- ADB SLEEP223에서 PowerManager Asleep, WAKEUP224에서 Awake를 확인했다. 게임 전경 및 확장이 회복됐고 하단 파일1 터치로 선택이3→1로 바뀌었다 (`azahar-new-build-wake-touch.png`). PID29465 유지.
+
+모든 증거 파일은 `test-results/2026-10-04/`에 있으며 PID 로그는 `azahar-new-build-runtime.log`다. 시작 중 Surface/EGL 경고 및 Activity transaction 경고도 있었다. 현재 시험에서 영상·터치·동일 PID 유지가 확인됐다는 제한적인 결과이며 모든 게임/반복 lifecycle 안정성의 증거는 아니다.
+
+ReGene의 auto_pose=false 벤치 조건이다. 실제 기기 회전, 커버 분리·연결, 실제 손가락, PC USB 분리 및 BT/USB-C 게임패드 입력/자동 숨김·복원과 눌린 조합 입력 해제는 남았다. 실제 MX FLEX DUO는 이 시험 당시 Bluetooth DISCONNECTED였으므로 컨트롤러 연결 시험으로 해석하지 않는다.
