@@ -39,3 +39,5 @@ DraStic 후속: 원형 빠른 메뉴의 게임패드 아이콘으로 기본 패�
 DraStic 추가 검증: Menu-Button Position=Hidden과 기본 패드 숨김을 조합하면 메뉴 삼각형까지 사라진다. 이 상태에서 하단 게임의 실제 터치 버튼을 ADB로 눌러 튜토리얼 진행을 확인했다. 앞선 중앙 터치 무변화는 게임의 버튼 대상과 달랐다. PID13399 및 두 화면 유지, 설정 복귀 통과, 최종 메뉴 Bottom/기본 패드 표시로 복원. 수동 전체 숨김 조합을 확인한 것이며 기본 패드 상태 읽기/실물 컨트롤러 기반 자동 복원 구현은 아직 남아 있다.
 
 ReGene0.1.8 후속: 제어앱에 실제 Android 게임패드 이름과 대수를 표시한다. 페어링과 실제 입력 장치 연결을 구분하며 Citra 자동 숨김도 같은 판정 함수를 사용한다. 현재 미연결 표시를 실기기에서 확인했고 실제 연결 표시/입력 시험은 남았다. DraStic APK 분석에서는 일반 숨김이 메뉴와 세 특수 버튼을 제외하는 것을 확인했다. 모든 설정에서 전체 숨김을 보장하려면 이 항목들도 이전값 보존·복원해야 한다. [장치 상태 기록](controller-device-status.md), [DraStic 분석](drastic-experiment.md).
+
+ReGene0.1.8 실제 BT Citra 시험: MX FLEX DUO 재연결(device11, sources0x01000711, STATE_CONNECTED) 상태에서 Citra를 ReGene로 실행하고 Kirby ROM을 선택했다. PID11078, 시험 모드false에서 접근성 제어가 Hide Input Buttons OFF→ON을 확인하고 설정 닫힘을 확인했다. 전체 가상패드 제거 및2340×2160 상·하 영상을 `citra-bt-first-connected.png`로 확인했다. 복원 소유권은true로 기록돼 있다. 이 Citra 실행의 연결 해제 복원과 실제 물리 버튼 입력은 아직 확인하지 않았다. 원래 게임 PID22161은 이번 실행 전에 이미 종료되어 있었으므로 이 시험을 이전 게임 세션 유지로 간주하지 않는다.
