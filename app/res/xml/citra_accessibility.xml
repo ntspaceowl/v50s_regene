@@ -1,6 +1,6 @@
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
  android:accessibilityEventTypes="typeWindowStateChanged|typeWindowContentChanged"
- android:packageNames="org.citra.emu"
+ android:packageNames="org.citra.emu,org.citra.rgn"
  android:accessibilityFeedbackType="feedbackGeneric"
  android:notificationTimeout="250"
  android:accessibilityFlags="flagReportViewIds"

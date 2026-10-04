@@ -28,6 +28,55 @@ if (($taskSmali.Split([string[]]@('"citra-emu"'), [StringSplitOptions]::None).Le
     throw 'Expected exactly one shared user directory literal'
 }
 [IO.File]::WriteAllText($taskPathSmali, $taskSmali.Replace('"citra-emu"', '"citra-rgn"'), $taskUtf8)
+# Re-selecting the same ROM must resume its existing Activity, not start a second native engine.
+$taskActivityPath = Join-Path $taskDecode 'smali/org/citra/emu/ui/EmulationActivity.smali'
+$taskActivity = [IO.File]::ReadAllText($taskActivityPath)
+$taskLaunchPattern = '(?m)^\.method public static n0\(Landroid/content/Context;Lw2/a;\)V\r?\n    \.locals 4'
+if ([regex]::Matches($taskActivity, $taskLaunchPattern).Count -ne 1) {
+    throw 'Expected exactly one installed ROM launch entry point'
+}
+$taskResume = @'
+.method public static n0(Landroid/content/Context;Lw2/a;)V
+    .locals 4
+
+    invoke-static {}, Lorg/citra/emu/ui/EmulationActivity;->j0()Lorg/citra/emu/ui/EmulationActivity;
+    move-result-object v0
+    if-eqz v0, :regene_new_game
+    invoke-virtual {v0}, Landroid/app/Activity;->isFinishing()Z
+    move-result v1
+    if-nez v1, :regene_new_game
+    invoke-virtual {v0}, Landroid/app/Activity;->isDestroyed()Z
+    move-result v1
+    if-nez v1, :regene_new_game
+    # IsRunning is false while paused; the live Activity owns the resumable game.
+    iget-object v1, v0, Lorg/citra/emu/ui/EmulationActivity;->v:Ljava/lang/String;
+    if-eqz v1, :regene_new_game
+    invoke-virtual {p1}, Lw2/a;->e()Ljava/lang/String;
+    move-result-object v2
+    invoke-virtual {v1, v2}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+    move-result v1
+    if-eqz v1, :regene_new_game
+    new-instance v1, Landroid/content/Intent;
+    const-class v2, Lorg/citra/emu/ui/EmulationActivity;
+    invoke-direct {v1, p0, v2}, Landroid/content/Intent;-><init>(Landroid/content/Context;Ljava/lang/Class;)V
+    const v2, 0x20000
+    invoke-virtual {v1, v2}, Landroid/content/Intent;->addFlags(I)Landroid/content/Intent;
+    invoke-virtual {p0, v1}, Landroid/content/Context;->startActivity(Landroid/content/Intent;)V
+    const-string v1, "ReGeneCitraProbe"
+    const-string v2, "Resumed existing game without another native Run"
+    invoke-static {v1, v2}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
+    return-void
+
+    :regene_new_game
+'@
+$taskActivity = [regex]::Replace($taskActivity, $taskLaunchPattern, $taskResume)
+# Display-added notifications can arrive after a transient display has disappeared.
+$taskDisplayPattern = '(?s)(\.method public onDisplayAdded\(I\)V.*?move-result-object p1\r?\n)(\s*\.line 7)'
+if ([regex]::Matches($taskActivity, $taskDisplayPattern).Count -ne 1) {
+    throw 'Expected exactly one display-added lookup'
+}
+$taskActivity = [regex]::Replace($taskActivity, $taskDisplayPattern, '$1' + "`n    if-eqz p1, :goto_0`n" + '$2')
+[IO.File]::WriteAllText($taskActivityPath, $taskActivity, $taskUtf8)
 & "$taskJava/java.exe" -jar $taskApktool b $taskDecode -o "$taskBuild/citra-controller-unsigned.apk"
 if ($LASTEXITCODE) { throw 'Citra rebuild failed' }
 & "$taskTools/zipalign.exe" -f 4 "$taskBuild/citra-controller-unsigned.apk" "$taskBuild/citra-controller-aligned.apk"

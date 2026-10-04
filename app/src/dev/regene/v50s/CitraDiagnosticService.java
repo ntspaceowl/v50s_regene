@@ -14,6 +14,7 @@ import java.util.ArrayList;
 public final class CitraDiagnosticService extends AccessibilityService {
     private final Handler handler = new Handler();
     private String last = "";
+    private String activePackage = "";
     private int stage;
     private boolean target;
     private boolean closeOnly;
@@ -27,7 +28,7 @@ public final class CitraDiagnosticService extends AccessibilityService {
         handler.removeCallbacks(poll); handler.post(poll);
     }
     @Override public void onAccessibilityEvent(AccessibilityEvent event) {
-        if ("org.citra.emu".contentEquals(event.getPackageName() == null ? "" : event.getPackageName())) inspect();
+        if (CitraTargets.supports(event.getPackageName() == null ? "" : event.getPackageName().toString())) inspect();
     }
     private void report(String message) {
         if (message.equals(last)) return;
@@ -41,7 +42,7 @@ public final class CitraDiagnosticService extends AccessibilityService {
         AccessibilityNodeInfo root = getRootInActiveWindow();
         if (root == null) return;
         try {
-            if (!"org.citra.emu".contentEquals(root.getPackageName() == null ? "" : root.getPackageName())) return;
+            if (!CitraTargets.supports(root.getPackageName() == null ? "" : root.getPackageName().toString())) return;
             automate(root);
             List<AccessibilityNodeInfo> labels = root.findAccessibilityNodeInfosByText("Hide Input Buttons");
             try {
@@ -108,15 +109,21 @@ public final class CitraDiagnosticService extends AccessibilityService {
     }
     private void automate(AccessibilityNodeInfo root) {
         SharedPreferences prefs = getSharedPreferences("controller", 0);
+        String selected = prefs.getString("controller_selected", "");
+        if (!selected.equals(activePackage)) {
+            activePackage=selected; stage=0; lastDesired=null; satisfied=null;
+            retryAfter=0; nextAction=0;
+        }
         long now = SystemClock.elapsedRealtime();
         if (now < nextAction) return;
         if (!prefs.getBoolean("controller_running",false)
-            || !"org.citra.emu".equals(prefs.getString("controller_selected",""))
-            || !prefs.getString("foreground_screen","").equals("org.citra.emu/org.citra.emu.ui.EmulationActivity")) {
+            || !selected.contentEquals(root.getPackageName() == null ? "" : root.getPackageName())
+            || !CitraTargets.game(selected, prefs.getString("foreground_screen",""))) {
             stage = 0; return;
         }
-        boolean desired = prefs.getBoolean("citra_test_mode",false) || controllerConnected();
-        boolean owned = prefs.getBoolean("citra_hide_owned",false);
+        String ownershipKey=CitraTargets.ownershipKey(selected);
+        boolean desired = ("org.citra.emu".equals(selected) && prefs.getBoolean("citra_test_mode",false)) || controllerConnected();
+        boolean owned = prefs.getBoolean(ownershipKey,false);
         if(lastDesired==null || lastDesired!=desired) { lastDesired=desired; satisfied=null; retryAfter=0; }
         if (stage > 0 && stage < 4 && desired != target) {
             target=desired;
@@ -154,7 +161,7 @@ public final class CitraDiagnosticService extends AccessibilityService {
             boolean stillOpen=hide!=null || setting!=null;
             if(hide!=null)hide.recycle(); if(setting!=null)setting.recycle();
             if(stillOpen)return;
-            if(!target)prefs.edit().putBoolean("citra_hide_owned",false).apply();
+            if(!target)prefs.edit().putBoolean(ownershipKey,false).apply();
             stage=0; satisfied=target; retryAfter=0; nextAction=now+1000;
             report(closeOnly ? "Citra 연결 상태 변경 · 메뉴 닫힘 확인"
                 : target ? "Citra 설정 닫힘 · 가상패드 숨김 확인" : "Citra 설정 닫힘 · 기존 표시 복원 확인");
@@ -169,7 +176,7 @@ public final class CitraDiagnosticService extends AccessibilityService {
             if (stage==2 && checked!=target) {
                 if(target && !owned) {
                     // Journal before a click so an interrupted change can be restored later.
-                    if(!prefs.edit().putBoolean("citra_hide_owned",true).commit()) {
+                    if(!prefs.edit().putBoolean(ownershipKey,true).commit()) {
                         failed("Citra 복원 기록 저장 실패"); return;
                     }
                 }

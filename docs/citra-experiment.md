@@ -93,3 +93,14 @@ APK SHA-256 C7A48E66A9018DFBF224999BE5C95ACAD2599262A3E237667DAAF3FF1559E8A9. �
 증거: citra-physical-batch-input.log, citra-physical-batch-observed.png, citra-controller-disconnect-crash.log, citra-controller-disconnect-regene.log, citra-relaunch-disconnect-sequence.log, citra-connected-launch-crash.log (test-results/2026-10-04). 복원 소유권 citra_hide_owned=true는 유지하며 원래 수동 설정을 무시하고 기록을 지우지 않는다.
 
 후속: app/build-citra-controller-probe.ps1로 기존 설치 APK 기반 분리 시험판을 빌드했다. 동작 수정은 EmulationActivity configChanges에 keyboard/keyboardHidden/navigation 추가(0xDF0)이며, 시험 격리를 위해 패키지를 org.citra.rgn, provider authority를 해당 패키지로, 공용 사용자 폴더 리터럴을 citra-rgn으로 바꿨다. Java/JNI 클래스 이름은 유지한다. 다섯 네이티브 라이브러리는 원본 APK와 바이트 단위로 같고 v2/v3 서명 검증에 통과했다. APK SHA256 EE5C2C5B9CD4B7595F665E39B1B141F36B82DDF9995595658C5F3A899592BEA3. 현재 PC 분리 시험을 방해하지 않도록 설치하지 않았다. 별도 폴더와 네이티브 경로의 런타임 확인, ReGene 시험판 선택·숨김 연동 및 실제 연결 해제 재시험은 남아 있다. 빌드 성공을 충돌 해결로 간주하지 않는다.
+# 2026-10-04 후속 실기기 시험
+
+ReGene0.1.12/code13에org.citra.rgn 선택 버튼과 원본/시험판별 접근성 상태 저장을 추가했다. 원본citra_hide_owned와 시험판citra_probe_hide_owned를 구분한다. CitraTargets 격리 테스트와 APK 빌드/설치를 통과했다. ReGene APK SHA256은159FC59D77A50DB743D30CF32D0016D3B406E04B4F0D78973E51EBFA02C84A28이다.
+
+manifest-only 분리 시험판(configChanges0xDF0)에서 사용자가 네 항목 모두 통과했다고 보고했다: BT 연결 시 전체 숨김 및 배치, 방향/확인/취소/손가락, BT 해제 후 게임 유지·복원 및 재연결, HOME/최근 앱 복귀. 이 배치의55초 모니터에는 연결 상태만 기록됐으므로 실제 OFF 전환의 계측 증거로 사용하지 않는다. 사용자 관찰과 로그 증거를 구분한다.
+
+준비 중 ReGene 버튼으로 런처를 열어 같은 ROM을 재선택하면 native 재시작 충돌이 발생했다. 최초 보완은NativeLibrary.IsRunning을 확인해 일시정지된 게임을 놓쳤다. 소스에서PauseEmulation이s_is_running=false로 바꾸는 것을 확인했다. 살아 있는 동일 GamePath의 Activity가 있으면FLAG_ACTIVITY_REORDER_TO_FRONT로 재개하도록 수정했다. 최종본 실시험 PID4675가 유지됐고20:37:34.501에Resumed existing game without another native Run 로그가 출력됐다.
+
+앱 전환 중20:33:28에onDisplayAdded의getDisplay 반환null을getFlags로 사용해Java NPE가 발생했다. transient display가 이미 사라졌다면 콜백을 종료하도록 추가했다. 최종본 설치 후 Azahar/melonDS 전환에서Citra PID4675가 유지됐다. 이 관찰은 모든 디스플레이 이벤트 경쟁 상태를 증명하지 않는다.
+
+최종 Citra APK SHA256:7E8F068E759117059C9750C9BF7EA614FDE39479ABB6239FAFEC225B94817137. v2/v3 서명 검증을 통과했고 원본 APK의5개 native .so와 바이트가 동일하다. 네이티브 엔진은 수정하지 않았다. 분리 사용자 경로는/sdcard/citra-rgn이며 원본 ROM/세이브는 보존했다. 최초 manifest-only APK도app/build/citra-controller-config-only.apk로 보존했다. 최종본 BT 회귀와 PC 없는 사용/케이스 재연결은 아직 별도 확인 대기다.
