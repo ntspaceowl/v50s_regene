@@ -70,3 +70,14 @@ ReGene 0.1.5/code6 빌드와 v2/v3 서명 검증 뒤 설치했다. 제어앱의 
 시험 종료 버튼으로 제어앱의 숨김 소유권을 false로 돌린 뒤, Citra Settings에서 Hide Input Buttons를 직접 ON으로 설정했다. 이때 test_mode=false/owned=false였다. 그 상태로 제어앱 숨김 시험을 실행한 뒤에도 owned=false가 유지됐으며, 시험 종료 후 test_mode=false/owned=false와 패드 숨김이 유지됐다. `citra-preserved-original-hidden.png`. 다시 Settings를 열어17:14:33 로그 및 checked=ON 캡처로 수동 상태 유지도 확인했다.
 
 마지막으로 이번 테스트를 위해 수동으로 바꾼 설정을 원래 OFF로 되돌렸다. prefs의 test_mode=false/owned=false 및17:14:51 OFF 로그, `citra-preserve-cleanup-restored.png`의 패드 재표시 확인. 기존 파일1의1% 상태를 선택해 메뉴만 탐색했으며 빈 파일 생성/삭제나 gameplay 진행은 하지 않았다. 물리 게임패드 연결·해제와 커버/회전/PC 없이 실행 검증은 남아 있다.
+
+
+## ReGene0.1.6 설정 창 닫힘 확인 단계
+
+checked 목표 상태 확인 → BACK 요청 뒤 별도 stage4에서 Hide Input Buttons/Settings 항목이 활성 Citra 창에서 사라질 때까지 기다린다. 이전의 완료 로그를 바로 내보내지 않고 닫힘 대기 상태를 먼저 보고한다. 복원 소유권도 해당 완료 단계에서 해제한다. 창이 닫히지 않으면 기존 전체 작업 제한에 따라 실패로 기록한다.
+
+작업 중 요구 상태가 달라질 때 stage를0으로 초기화해서 스스로 연 메뉴를 남기는 경로도 보완했다. 변경 소유권이 없고 숨김 요청이 해제되면 체크 상태를 바꾸지 않고 메뉴만 닫으며, 이미 임시 변경했다면 목표 체크 상태를 다시 맞춘다. 닫힘 확인 중 상태 변화는 현재 닫힘을 마무리하고 다음 요청에서 처리한다. 이 중간 상태 변경 분기는 아직 실기로 검증하지 않았다.
+
+0.1.6/code7 빌드, v2/v3 서명 확인, 설치 후 명시적 시험 버튼으로 다시 확인했다. 숨김 로그17:18:43 닫힘 대기 →17:18:44 닫힘/숨김 확인, 복원 로그17:19:38 닫힘 대기 →17:19:39 닫힘/복원 확인. 캡처 citra-016-close-confirm-hide.png / citra-016-close-confirm-restore.png에서 설정 메뉴가 사라진 뒤 각각 전체 패드 제거/재표시를 확인했다. Citra PID22161 유지 및 두 게임 영상 유지. 종료 후 test_mode=false/owned=false 확인.
+
+APK SHA-256 C7A48E66A9018DFBF224999BE5C95ACAD2599262A3E237667DAAF3FF1559E8A9. 실제 물리 장치 및 미확인 대화상자/사용자 개입, 회전·커버·PC 없이 실행은 여전히 별도 검증 대상이다.

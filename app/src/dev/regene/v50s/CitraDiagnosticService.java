@@ -17,6 +17,7 @@ public final class CitraDiagnosticService extends AccessibilityService {
     private String last = "";
     private int stage;
     private boolean target;
+    private boolean closeOnly;
     private Boolean lastDesired, satisfied;
     private long deadline, nextAction, retryAfter;
     private final Runnable poll = new Runnable() {
@@ -124,7 +125,15 @@ public final class CitraDiagnosticService extends AccessibilityService {
         boolean desired = prefs.getBoolean("citra_test_mode",false) || controllerConnected();
         boolean owned = prefs.getBoolean("citra_hide_owned",false);
         if(lastDesired==null || lastDesired!=desired) { lastDesired=desired; satisfied=null; retryAfter=0; }
-        if (stage != 0 && desired != target) { stage = 0; nextAction = now + 500; return; }
+        if (stage > 0 && stage < 4 && desired != target) {
+            target=desired;
+            if(!desired && !owned) {
+                // Nothing was changed: close our menu without changing a manual hidden state.
+                if(!performGlobalAction(GLOBAL_ACTION_BACK)) { failed("Citra 설정 닫기 실패"); return; }
+                closeOnly=true; stage=4; nextAction=now+700; return;
+            }
+            if(stage==3)stage=2;
+        }
         if (stage != 0 && now > deadline) { failed("Citra 메뉴 제어 시간 초과"); return; }
         if (stage == 0) {
             if (now < retryAfter || (satisfied!=null && satisfied==desired) || (!desired && !owned)) return;
@@ -135,7 +144,7 @@ public final class CitraDiagnosticService extends AccessibilityService {
             boolean busy = setting != null || hide != null || done != null;
             if(setting!=null)setting.recycle(); if(hide!=null)hide.recycle(); if(done!=null)done.recycle();
             if(busy)return;
-            target=desired; deadline=now+12000;
+            target=desired; closeOnly=false; deadline=now+12000;
             if (!performGlobalAction(GLOBAL_ACTION_BACK)) { failed("Citra 메뉴 열기 실패"); return; }
             stage=1; nextAction=now+500; return;
         }
@@ -145,6 +154,18 @@ public final class CitraDiagnosticService extends AccessibilityService {
             try { if(!click(setting)) { failed("Citra Settings 선택 실패"); return; } }
             finally { setting.recycle(); }
             stage=2; nextAction=now+500; return;
+        }
+        if (stage == 4) {
+            AccessibilityNodeInfo hide=exactLabel(root,"Hide Input Buttons");
+            AccessibilityNodeInfo setting=exactLabel(root,"Settings");
+            boolean stillOpen=hide!=null || setting!=null;
+            if(hide!=null)hide.recycle(); if(setting!=null)setting.recycle();
+            if(stillOpen)return;
+            if(!target)prefs.edit().putBoolean("citra_hide_owned",false).apply();
+            stage=0; satisfied=target; retryAfter=0; nextAction=now+1000;
+            report(closeOnly ? "Citra 연결 상태 변경 · 메뉴 닫힘 확인"
+                : target ? "Citra 설정 닫힘 · 가상패드 숨김 확인" : "Citra 설정 닫힘 · 기존 표시 복원 확인");
+            return;
         }
         AccessibilityNodeInfo label=exactLabel(root,"Hide Input Buttons");
         if(label==null)return;
@@ -163,12 +184,9 @@ public final class CitraDiagnosticService extends AccessibilityService {
                 stage=3; nextAction=now+500; return;
             }
             if(checked!=target)return;
-            if(!target)prefs.edit().putBoolean("citra_hide_owned",false).apply();
             if(!performGlobalAction(GLOBAL_ACTION_BACK)) { failed("Citra 설정 닫기 실패"); return; }
-            stage=0; nextAction=now+1000;
-            // Avoid reopening settings each second while the same controller remains attached.
-            satisfied=target; retryAfter=0;
-            report(target ? "Citra 가상패드 숨김 확인" : "Citra 기존 가상패드 표시 복원 확인");
+            stage=4; nextAction=now+700;
+            report("Citra 체크 상태 확인 · 설정 닫힘 대기");
         } finally { if(check!=null)check.recycle(); label.recycle(); }
     }
     private AccessibilityNodeInfo singleCheckbox(AccessibilityNodeInfo node, int depth) {
