@@ -37,3 +37,14 @@ Hide Input Buttons를 켜고 설정 창을 닫았을 때 전체 가상패드가 
 게임 영상 및 메모리 숫자가 계속 갱신될 때 uiautomator dump가 idle timeout으로 실패했다. 최초 메뉴에서는 텍스트 노드를 읽었지만 Settings checkbox의 접근성 노드/checked 상태는 아직 읽지 못했고 캡처로만 확인했다. companion 구현에서는 실제 AccessibilityService에서 체크 상태와 클릭 성공을 검증해야 하며 화면 좌표에만 의존한 자동 토글은 충분한 근거가 없다. 이전 수동 상태를 저장하고 임시 변경한 경우에만 복원하는 처리도 필요하다.
 
 이번 첫 시도 중 16:47:53 PID20446의 NativeEmulation SIGSEGV, 16:48:31 PID21436의 InputOverlay Map.get null 오류가 발생했다. 둘의 원인을 단정하지 않는다. 재실행 PID22161에서는 메뉴 편집/숨김/복원 과정이 유지됐다. shell am stopservice는 오류를 반환했고 이후 dumpsys에서 ControllerService가 실행 중이었다. 따라서 이번 결과는 companion을 중지한 뒤 성공한 시험으로 해석하면 안 된다.
+
+
+## ReGene 0.1.4 읽기 진단 구현 및 실기 확인
+
+CitraDiagnosticService를 추가했다. 서비스 XML의 이벤트 대상은 org.citra.emu이며, 활성 창의 패키지를 다시 검사한 뒤 정확한 Hide Input Buttons 라벨을 찾는다. 가까운 부모 행에 체크 가능한 노드가 하나인 경우에만 checked 상태를 보고한다. 여러 후보가 있거나 상태를 찾지 못하면 추측하지 않는다. 메뉴 열기, 클릭, 제스처, 설정 변경 API는 구현하지 않았다. 해당 서비스의 접근성 능력은 창 콘텐츠 읽기(capabilities=1)다. 이벤트 및 1초 주기로 확인하고 동일한 상태의 로그/설정 쓰기는 생략한다. MainActivity에는 최근 진단 기록과 접근성 설정 링크를 추가했다.
+
+빌드 및 v2/v3 서명 확인 후 휴대폰에 ReGene versionCode5/versionName0.1.4로 설치했다. 앱 첫 실행 뒤 LG 접근성 설정 목록에 서비스가 표시됐고 해당 서비스의 표준 사용/켜기 UI로 활성화했다. dumpsys accessibility에서 Bound services/Enabled services 포함, Crashed services 비어 있음을 확인했다. 다른 접근성 서비스는 변경하지 않았다.
+
+실행 중 Citra Settings를 열어 ReGene 로그에서 16:59:17 OFF를 읽었다. ADB로 같은 설정 체크박스를 수동 조작해 16:59:57 ON, 다시 원래 상태로 되돌려17:00:00 OFF를 읽었다. Citra PID22161 유지. 이번 결과는 체크 상태 읽기의 OFF→ON→OFF 실기 검증이며, 서비스가 자동 클릭한 시험이나 물리 게임패드 이벤트 검증은 아니다. Citra 설정은 최종 OFF로 복원하고 창을 닫았다.
+
+APK SHA-256: 401D02631A387520D5BB3FED96EB7AC5AF887921CBE7EA43AC01CEA86E6F8B9A. 진단은 활성화돼 있으며 실제 자동 숨김·복원 구현과 숨김 중 하단 터치 검증은 다음 단계다.

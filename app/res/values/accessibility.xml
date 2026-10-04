@@ -1,0 +1,4 @@
+<resources>
+ <string name="citra_diagnostic_label">ReGene · Citra 버튼 상태 진단</string>
+ <string name="citra_diagnostic_description">Citra 실행 중 설정의 Hide Input Buttons 체크 상태를 읽습니다. 현재 진단 버전은 메뉴를 열거나 설정을 변경하지 않습니다.</string>
+</resources>

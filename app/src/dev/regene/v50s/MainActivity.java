@@ -16,7 +16,8 @@ public final class MainActivity extends Activity {
         state.setText("앱 사용 정보: " + (usageAllowed() ? "허용" : "설정 필요")
             + " · 시스템 설정: " + (Settings.System.canWrite(MainActivity.this) ? "허용" : "설정 필요")
             + " · 가로 방향 유지: " + (Settings.canDrawOverlays(MainActivity.this) ? "허용" : "설정 필요")
-            + "\n" + getSharedPreferences("controller",0).getString("status","에뮬레이터를 선택하세요."));
+            + "\n" + getSharedPreferences("controller",0).getString("status","에뮬레이터를 선택하세요.")
+            + "\nCitra 진단 최근 기록: " + getSharedPreferences("controller",0).getString("citra_diagnostic","설정 필요"));
         handler.postDelayed(this,1000);
     }};
     boolean usageAllowed() {
@@ -51,6 +52,8 @@ public final class MainActivity extends Activity {
             }); b.setEnabled(launch!=null);
         }
         button(root,"자동 제어 중지",()->stopService(new Intent(this,ControllerService.class)));
+        button(root,"Citra 버튼 상태 진단 허용",()->startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)));
+        TextView diagnosticHint=new TextView(this); diagnosticHint.setText("ReGene · Citra 버튼 상태 진단을 켜면 실행 중 설정의 체크 상태를 읽습니다. 자동 숨김은 아직 시험 전입니다."); root.addView(diagnosticHint);
         TextView note = new TextView(this); note.setText("최초 시험 버전 · 게임 레이아웃은 각 에뮬레이터에 저장된 설정을 사용합니다. 가로 방향은 듀얼스크린이 위로 오도록 맞춰 주세요."); root.addView(note);
         ScrollView scroll = new ScrollView(this); scroll.addView(root); setContentView(scroll);
     }
