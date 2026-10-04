@@ -15,6 +15,7 @@ public final class MainActivity extends Activity {
     private final Runnable refresh = new Runnable() { public void run() {
         state.setText("앱 사용 정보: " + (usageAllowed() ? "허용" : "설정 필요")
             + " · 시스템 설정: " + (Settings.System.canWrite(MainActivity.this) ? "허용" : "설정 필요")
+            + " · 가로 방향 유지: " + (Settings.canDrawOverlays(MainActivity.this) ? "허용" : "설정 필요")
             + "\n" + getSharedPreferences("controller",0).getString("status","에뮬레이터를 선택하세요."));
         handler.postDelayed(this,1000);
     }};
@@ -41,8 +42,8 @@ public final class MainActivity extends Activity {
         for (String[] app:apps) {
             Intent launch = getPackageManager().getLaunchIntentForPackage(app[1]);
             Button b = button(root, app[0]+(launch==null ? " · 미설치" : " 실행"),()->{
-                if (!usageAllowed() || !Settings.System.canWrite(this)) {
-                    Toast.makeText(this,"위의 두 권한을 먼저 허용하세요.",Toast.LENGTH_LONG).show(); return;
+                if (!usageAllowed() || !Settings.System.canWrite(this) || !Settings.canDrawOverlays(this)) {
+                    Toast.makeText(this,"앱 사용 정보, 시스템 설정 변경, 가로 방향 유지 권한을 먼저 허용하세요.",Toast.LENGTH_LONG).show(); return;
                 }
                 startForegroundService(new Intent(this,ControllerService.class).putExtra("package",app[1]));
                 startActivity(launch);
