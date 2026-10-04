@@ -4,7 +4,9 @@
 
 2026-10-04 실제 BT 후속: combo 해제 보완을 포함한 현재 설치 시험판에서 MX FLEX DUO가 device10 / sources0x01000711 / STATE_CONNECTED로 재연결됐다. PID29465 유지, 가상패드의 버튼·스틱·START/SELECT가 자동으로 사라졌다. 검증을 위해 자동 자세 판단을 잠시 끈 가로 배치에서 두 게임 화면이 유지된 것을 `azahar-bt-wide-settled.png`로 확인했다. 전환 직후 `azahar-bt-wide-hidden.png`는 검은 화면이므로 영상 유지의 증거가 아니다. 커버 분리·실제 회전은 이번 시험 범위가 아니다.
 
-격리 시험판 SharedPreferences에는 Host 버튼/축 매핑이 아직 없다. 사용자의 방향키 입력을 요청하고 해당 실물 장치의 getevent만 제한 시간 동안 관찰하는 중이며 실제 게임 입력 성공을 아직 판정하지 않았다. 연결과 표시 숨김을 입력 매핑 성공으로 간주하지 않는다. 이번 시험의 분리 복원·숨김 중 하단 터치는 아직 확인하지 않았다.
+격리 시험판 SharedPreferences에는 Host 버튼/축 매핑이 아직 없다. 방향키 입력 관찰은 입력 없이 제한 시간 종료됐고 실제 게임 입력 성공을 판정하지 않았다. 이어 앱의 Settings → Gamepad → Auto-Map Controller를 열어 실물 오른쪽 face 버튼 입력을 요청했다. 이 관찰도 입력 없이 종료됐고 컨트롤러가 STATE_DISCONNECTED로 바뀌었다. Auto-Map을 취소했으며 Host 버튼/축 매핑은 저장되지 않았다. 연결과 표시 숨김을 입력 매핑 성공으로 간주하지 않는다.
+
+연결 해제 후 Settings에서 게임으로 복귀했을 때 기존 L/R, D-pad, 스틱, ABXY, START/SELECT가 다시 표시되고 상·하 영상과 PID29465를 유지했다 (`azahar-bt-disconnected-restored.png`). 이는 **설정 화면에서 분리된 뒤 게임 복귀 시 표시 복원**의 확인이다. 게임 도중 분리 즉시 복원이나 원래 수동 숨김 상태를 유지하는 경우의 실물 장치 시험은 아니다. 숨김 중 하단 터치도 이번 BT 시험에서 아직 확인하지 않았다.
 
 ## 확인한 사실
 
