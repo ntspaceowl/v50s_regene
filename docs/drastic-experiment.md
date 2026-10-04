@@ -36,3 +36,5 @@ Virtual Gamepad → Menu-Button Position에는 Bottom/Top/Left/Right/**Hidden** 
 시험 후 접근 가능한 설정에서 Hidden→Bottom으로 돌리고 원형 메뉴로 기본 패드 표시를 복원했다 (`drastic-combined-restored.png`). 설정 진입 후 게임 복귀도 같은 PID에서 통과했다. 현재는 원래 패드 표시/메뉴 Bottom 상태다. 실물 손가락 터치, 실제 컨트롤러 연결 자동화 및 외부 버튼으로 메뉴 복귀는 여전히 미검증이다.
 
 메뉴 버튼의 명시적 숨김·복원 경로는 찾았지만 기본 패드 상태를 안전하게 읽는 경로는 여전히 없다. 전체 숨김의 수동 조합은 확인했으나 ReGene의 자동 제어 구현이 완료된 것은 아니다.
+
+후속 편집기 조사: Game Menu → Edit Screens and Virtual Pad → Landscape 1:1 → Menu → Edit Controller Layout으로 진입했다. 접근성으로 읽히는 항목은 Apply/Default/Resize/Cancel이며 기본 패드의 게임 중 표시 상태를 나타내는 체크 항목은 찾지 못했다. 확장 레이아웃 좌표가 일반 화면 밖에 있어 컨트롤 자체도 현재 편집 화면에서 보이지 않았다. 레이아웃 저장/Apply를 하지 않고 BACK으로 취소해 게임으로 복귀했다. 이 편집기를 기본 패드 상태 조회 수단으로 사용하지 않는다.

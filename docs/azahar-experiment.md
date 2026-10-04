@@ -27,3 +27,9 @@ ReGene만으로 원본 Azahar가 해결됐다는 증거가 아니며, upstream�
 그러나 15:03 HOME/최근 앱 복귀에서 SIGSEGV가 발생했다. ANativeWindow_setBuffersGeometry → CreateWindowSurface → PollEvents 경로이며 게임 유지 복귀는 실패다. 로그: azahar-clean-return-crash.log. 앞선 한 회 성공을 보편적인 안정성으로 확대하지 않는다.
 
 다음 시험은 EmulationFragment.onResume의 즉시 unpause를 기존 emulationState.run으로 대체한다. 저장된 Surface가 없으면 Surface 콜백까지 재개를 기다리도록 하는 최소 Kotlin 가설 수정이다. 네이티브 라이브러리는 동일하며, Surface 수명 문제 전체가 해결됐다는 주장은 실험 결과가 나오기 전에는 하지 않는다.
+
+## 조합 입력 해제 보완 APK 설치
+
+2026-10-04 후속 빌드에서 컨트롤러 감지로 가상패드를 제거하기 직전, 눌린 COMBO_BUTTON에 `ComboHelper.comboActivate(RELEASED)`를 보내는 보완을 포함했다. `:app:assembleVanillaDebug` 성공, APK v2 서명 검증 성공, 분리 시험 패키지 `org.azahar_emu.azahar.regeneprobe`에 `adb install -r` 성공. 원본 패키지는 별도로 유지됐다.
+
+APK SHA256: `7EF590E14862D67B1215A39D5F75F6A9E260478FD0EF061CDF18D17756C5339D`. 설치된 base.apk의 장치 SHA256도 같았다. 이전 기록의 조합 입력 보완 미설치는 이 APK로 해소됐다. 빌드/설치 확인이며 실제 조합 버튼을 누르는 도중 컨트롤러 연결 및 게임 런타임 검증은 아직 아니다. 실물 컨트롤러가 다시 연결되면 입력 매핑과 함께 시험해야 한다.
