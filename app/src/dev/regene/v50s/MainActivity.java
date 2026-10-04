@@ -28,6 +28,11 @@ public final class MainActivity extends Activity {
         TextView title = new TextView(this); title.setText("V50S ReGene"); title.setTextSize(28); root.addView(title);
         TextView intro = new TextView(this); intro.setText("듀얼스크린 = 상단\n본체 = 하단 터치 화면과 게임 버튼\n\n실행할 에뮬레이터를 선택하세요."); intro.setTextSize(18); root.addView(intro);
         state = new TextView(this); root.addView(state);
+        Switch rotation = new Switch(this); rotation.setText("기기를 돌리면 자동 배치");
+        rotation.setChecked(getSharedPreferences("controller",0).getBoolean("auto_pose",true));
+        rotation.setOnCheckedChangeListener((view,checked)->getSharedPreferences("controller",0).edit().putBoolean("auto_pose",checked).apply());
+        root.addView(rotation);
+        TextView rotationHint=new TextView(this);rotationHint.setText("끄면 가로 배치를 유지합니다.");root.addView(rotationHint);
         button(root,"앱 사용 정보 허용",()->startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS,Uri.parse("package:"+getPackageName()))));
         button(root,"시스템 설정 변경 허용",()->startActivity(new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,Uri.parse("package:"+getPackageName()))));
         String[][] apps = {{"Citra","org.citra.emu"},{"melonDS","me.magnum.melonds"},{"DraStic","com.dsemu.drastic"},{"Azahar · 호환성 검증 중","org.azahar_emu.azahar"}};

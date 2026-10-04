@@ -4,19 +4,24 @@ import android.app.*;
 import android.app.usage.*;
 import android.content.*;
 import android.hardware.display.DisplayManager;
+import android.hardware.*;
 import android.os.*;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.Display;
 
-public final class ControllerService extends Service {
+public final class ControllerService extends Service implements SensorEventListener {
     private final Handler handler=new Handler();
     private String selected="", foreground="", activity="", lastActivity="";
-    private long cursor, budgetStart, cooldown, lastSet, launchUntil;
+    private long cursor, budgetStart, cooldown, lastSet, launchUntil, activitySince;
     private int attempts;
     private LgWide lg;
     private boolean ownsRotation;
     private int oldRotation,oldAuto;
+    private SensorManager sensors;
+    private RotationPolicy pose;
+    private boolean settledPose;
+    private long poseChangedAt;
     private android.content.SharedPreferences prefs;
     @Override public void onCreate() {
         super.onCreate(); prefs=getSharedPreferences("controller",0);
@@ -32,6 +37,14 @@ public final class ControllerService extends Service {
             restoreRotation();
         }
         cursor=System.currentTimeMillis()-2000;
+        Display main=getSystemService(DisplayManager.class).getDisplay(0);
+        pose=new RotationPolicy(main!=null && (main.getRotation()==1 || main.getRotation()==3));
+        settledPose=pose.landscape();
+        sensors=getSystemService(SensorManager.class);
+        Sensor gravity=sensors.getDefaultSensor(Sensor.TYPE_GRAVITY);
+        if(gravity==null)gravity=sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        if(gravity!=null)sensors.registerListener(this,gravity,SensorManager.SENSOR_DELAY_NORMAL);
+        else status("자세 센서 없음: 자동 배치를 끄고 가로 배치를 사용할 수 있습니다.");
         try {lg=new LgWide(this);status("LG 화면 제어 연결됨");} catch(Exception e) {fail(e);stopSelf();}
     }
     @Override public int onStartCommand(Intent intent,int flags,int id) {
@@ -55,6 +68,12 @@ public final class ControllerService extends Service {
         Settings.System.putInt(getContentResolver(),Settings.System.ACCELEROMETER_ROTATION,oldAuto);
         ownsRotation=false;prefs.edit().putBoolean("restore_pending",false).apply();
     }
+    @Override public void onSensorChanged(SensorEvent event) {
+        boolean before=pose.landscape();
+        boolean after=pose.sample(event.values[0],event.values[1]);
+        if(before!=after) {poseChangedAt=SystemClock.elapsedRealtime();Log.i("ReGene","Pose candidate="+after+" gravity="+event.values[0]+","+event.values[1]);}
+    }
+    @Override public void onAccuracyChanged(Sensor sensor,int accuracy) {}
     private final Runnable tick=new Runnable(){public void run(){
         try {
             long now=System.currentTimeMillis();
@@ -66,14 +85,23 @@ public final class ControllerService extends Service {
                 }
             }
             cursor=now;
+            String screen=foreground+"/"+activity;
+            if(!screen.equals(lastActivity)) {
+                lastActivity=screen;activitySince=now;attempts=0;budgetStart=now;cooldown=0;
+                Log.i("ReGene","Foreground="+screen);
+            }
             boolean cover=false;
             for(Display d:getSystemService(DisplayManager.class).getDisplays()) if(d.getDisplayId()==1 && d.getState()==Display.STATE_ON)cover=true;
-            boolean active=selected.equals(foreground) && cover && getSystemService(PowerManager.class).isInteractive();
+            if(SystemClock.elapsedRealtime()-poseChangedAt>600)settledPose=pose.landscape();
+            boolean landscape=!prefs.getBoolean("auto_pose",true) || settledPose;
+            boolean game=activity.endsWith(".EmulationActivity") || activity.endsWith(".EmulatorActivity") || activity.endsWith(".DraSticEmuActivity");
+            boolean active=selected.equals(foreground) && game && now-activitySince>=2500 && cover && landscape && getSystemService(PowerManager.class).isInteractive();
             if(active) {
                 saveRotation();
-                Settings.System.putInt(getContentResolver(),Settings.System.ACCELEROMETER_ROTATION,0);
-                Settings.System.putInt(getContentResolver(),Settings.System.USER_ROTATION,3);
-                if(!activity.equals(lastActivity)) {lastActivity=activity; attempts=0; budgetStart=now;cooldown=0;status("실행 감지: "+selected+" / "+activity);}
+                if(Settings.System.getInt(getContentResolver(),Settings.System.ACCELEROMETER_ROTATION,1)!=0)
+                    Settings.System.putInt(getContentResolver(),Settings.System.ACCELEROMETER_ROTATION,0);
+                if(Settings.System.getInt(getContentResolver(),Settings.System.USER_ROTATION,0)!=3)
+                    Settings.System.putInt(getContentResolver(),Settings.System.USER_ROTATION,3);
                 if(!lg.enabled() && now>=cooldown && now-lastSet>1000) {
                     if(now-budgetStart>15000){attempts=0;budgetStart=now;}
                     if(attempts>=6){cooldown=now+60000;status("화면 확장이 반복 해제되어 60초 대기합니다.");}
@@ -86,6 +114,6 @@ public final class ControllerService extends Service {
         } catch(Exception e) {fail(e);handler.removeCallbacks(this);stopSelf();return;}
         handler.postDelayed(this,650);
     }};
-    @Override public void onDestroy(){handler.removeCallbacks(tick);try{if(lg!=null && ownsRotation)lg.set(false);restoreRotation();}catch(Exception e){fail(e);}status("자동 제어 중지됨");super.onDestroy();}
+    @Override public void onDestroy(){handler.removeCallbacks(tick);if(sensors!=null)sensors.unregisterListener(this);try{if(lg!=null && ownsRotation)lg.set(false);restoreRotation();}catch(Exception e){fail(e);}status("자동 제어 중지됨");super.onDestroy();}
     @Override public IBinder onBind(Intent intent){return null;}
 }
