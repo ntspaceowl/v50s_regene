@@ -4,7 +4,6 @@ import android.accessibilityservice.AccessibilityService;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.content.SharedPreferences;
-import android.view.InputDevice;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -69,13 +68,7 @@ public final class CitraDiagnosticService extends AccessibilityService {
         } finally { root.recycle(); }
     }
     private boolean controllerConnected() {
-        for (int id : InputDevice.getDeviceIds()) {
-            InputDevice device = InputDevice.getDevice(id);
-            if (device != null && device.isEnabled() && device.isExternal() && !device.isVirtual()
-                && (device.supportsSource(InputDevice.SOURCE_GAMEPAD)
-                || device.supportsSource(InputDevice.SOURCE_JOYSTICK))) return true;
-        }
-        return false;
+        return GameControllers.connected();
     }
     private AccessibilityNodeInfo exactLabel(AccessibilityNodeInfo root, String text) {
         List<AccessibilityNodeInfo> nodes = root.findAccessibilityNodeInfosByText(text);

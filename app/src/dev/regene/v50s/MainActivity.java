@@ -17,6 +17,7 @@ public final class MainActivity extends Activity {
             + " · 시스템 설정: " + (Settings.System.canWrite(MainActivity.this) ? "허용" : "설정 필요")
             + " · 가로 방향 유지: " + (Settings.canDrawOverlays(MainActivity.this) ? "허용" : "설정 필요")
             + "\n" + getSharedPreferences("controller",0).getString("status","에뮬레이터를 선택하세요.")
+            + "\n" + GameControllers.status()
             + "\nCitra 진단 최근 기록: " + getSharedPreferences("controller",0).getString("citra_diagnostic","설정 필요"));
         handler.postDelayed(this,1000);
     }};
