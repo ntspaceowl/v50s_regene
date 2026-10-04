@@ -14,4 +14,6 @@ OFF 화면이 이미 존재할 때 다시 확장하는 것은 성공했다. 따�
 
 연구 checkout은 `research/azahar-build`, 빌드 경로는 `src/android`. 로컬 Gradle에서 CMake 설정 두 곳을 제외하고 ABI를 ARM64로 제한하며 `prebuiltJniLibs`에 공식 APK 라이브러리를 넣었다. `JAVA_HOME`을 Android Studio JBR로 설정하고 `gradlew.bat :app:assembleVanillaDebug --console=plain`을 실행한다. 원본의 화면 출력 및 Activity manifest 정책은 변경하지 않았다.
 
-이 패치는 아직 Azahar에서 검증되지 않았다. ReGene만으로 원본 Azahar가 해결됐다는 증거가 아니며, upstream에 제출하거나 공개 배포하지 않았다. 연구 checkout의 AI-POLICY.md는 자율 PR/이슈 제출을 금지하므로 향후 upstream 제안은 사람이 직접 검증하고 해당 정책에 맞춰 진행해야 한다.
+시험 빌드는 빌드/설치에 성공했다. OpenGL 커비에서 2340×2160 확장이 약 40초간 유지됐고 HOME/최근 앱 복귀 후 같은 프로세스에서 게임 영상과 확장이 회복됐다. 원본에서 관찰한 0.5초 내 반복 해제는 이 시험에서 나타나지 않았다. 물리 회전, 모든 버튼의 본체 배치, 게임 터치 및 나머지 lifecycle은 미완료다. 저장한 custom 좌표와 실제 렌더링이 다른 문제도 발견돼 설정 매핑 확인이 필요하다.
+
+ReGene만으로 원본 Azahar가 해결됐다는 증거가 아니며, upstream에 제출하거나 공개 배포하지 않았다. 연구 checkout의 AI-POLICY.md는 자율 PR/이슈 제출을 금지하므로 향후 upstream 제안은 사람이 직접 검증하고 해당 정책에 맞춰 진행해야 한다.
