@@ -18,3 +18,7 @@
 15:11 이후 시험: 이미 연결된 MX FLEX DUO를 유지한 채 ReGene에서 시험판을 실행해 커비를 시작했다. PID3351, azahar-controller-auto-hidden.png에서 게임 상/하 두 화면은 기존 좌표로 유지되고 전체 가상 버튼/스틱이 사라진 것을 확인했다. 사용자에게 실제 A 버튼 입력을 요청했으며 응답 대기 중이다. 타이틀 뒤 영상만으로 실제 입력을 통과로 판단하지 않는다 (자동 데모 가능). 장치 분리 시 복원은 아직 미검증이다. combo 입력 중 숨김 시 해제 보완을 추가로 빌드했지만 현재 설치본에는 해당 보완만 아직 반영되지 않았다.
 
 후속 확인: 시험판 prefs에 HostAxis 매핑이 없었다. 매핑 전에 게임 A 입력 시험을 요청한 순서를 정정하고 실제 UI에서 게임 메뉴 → Settings → Gamepad → Auto-Map Controller를 열었다. 오른쪽 face 버튼의 실제 KeyEvent로 Nintendo/Xbox 배열과 d-pad 종류를 판별하는 다이얼로그다. 지금은 이 화면에서 사용자 버튼 입력을 기다리는 상태다. azahar-controller-auto-map-prompt.png. A 입력이 아직 확인되지 않은 원인을 자동 숨김의 입력 차단으로 단정하지 않는다.
+
+후속 복원 시험: 자동 매핑 대기 중 MX FLEX DUO가 input 목록에서 사라졌다. 매핑은 완료되지 않았고 다이얼로그를 취소했다. Settings에서 게임으로 돌아온 뒤 전체 가상패드가 다시 표시됐다. PID3351 유지, 게임 영상과2340×2160 배치도 유지됐다. azahar-controller-disconnected-restored.png. 이 결과는 설정 화면에서 연결 해제한 뒤 복귀한 경우의 표시 복원이며 게임 전경에서 끊고 즉시 복원되는 경우와 재연결은 별도 검증이 필요하다.
+
+melonDS 분리 시험판에도 물리 장치 리스너 기반 임시 전체 숨김을 구현하고 빌드/설치했다. prefs/수동 표시 상태를 수정하지 않고 화면 컴포넌트와 하단 touch 리스너를 유지한다. 실제 실행/연결 검증은 아직 미완료다. details: melonds-experiment.md.

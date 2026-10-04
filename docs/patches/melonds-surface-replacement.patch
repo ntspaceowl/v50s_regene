@@ -1,0 +1,46 @@
+diff --git a/app/src/main/java/me/magnum/melonds/ui/emulator/EmulatorSurfaceView.kt b/app/src/main/java/me/magnum/melonds/ui/emulator/EmulatorSurfaceView.kt
+index 52a74b2..dd136f1 100644
+--- a/app/src/main/java/me/magnum/melonds/ui/emulator/EmulatorSurfaceView.kt
++++ b/app/src/main/java/me/magnum/melonds/ui/emulator/EmulatorSurfaceView.kt
+@@ -19,6 +19,7 @@ class EmulatorSurfaceView(context: Context, attrs: AttributeSet? = null) : Surfa
+     private var surfaceHeight = 0
+     private var surfaceState = SurfaceState.UNINITIALIZED
+     private var surface: Surface? = null
++    private var surfaceReplaced = false
+     private var windowSurface: EGLSurface? = null
+     private var renderer: EmulatorRenderer? = null
+ 
+@@ -43,6 +44,7 @@ class EmulatorSurfaceView(context: Context, attrs: AttributeSet? = null) : Surfa
+     override fun surfaceCreated(holder: SurfaceHolder) {
+         synchronized(surfaceLock) {
+             surface = holder.surface
++            surfaceReplaced = true
+         }
+     }
+ 
+@@ -59,11 +61,18 @@ class EmulatorSurfaceView(context: Context, attrs: AttributeSet? = null) : Surfa
+     override fun surfaceDestroyed(holder: SurfaceHolder) {
+         synchronized(surfaceLock) {
+             surface = null
++            surfaceReplaced = true
+         }
+     }
+ 
+     fun doFrame(glContext: GlContext, presentFrameWrapper: PresentFrameWrapper) {
+         synchronized(surfaceLock) {
++            // Destruction/recreation can both occur while frame delivery is paused.
++            if (surfaceReplaced) {
++                windowSurface?.let { glContext.destroyWindowSurface(it) }
++                windowSurface = null
++                surfaceReplaced = false
++            }
+             if (windowSurface == null) {
+                 if (!setupWindowSurface(glContext)) {
+                     return
+@@ -109,4 +118,4 @@ class EmulatorSurfaceView(context: Context, attrs: AttributeSet? = null) : Surfa
+             }
+         }
+     }
+-}
+\ No newline at end of file
++}

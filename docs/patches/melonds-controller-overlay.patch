@@ -1,0 +1,94 @@
+diff --git a/app/src/main/java/me/magnum/melonds/ui/emulator/RuntimeLayoutView.kt b/app/src/main/java/me/magnum/melonds/ui/emulator/RuntimeLayoutView.kt
+index c4da863..734f243 100644
+--- a/app/src/main/java/me/magnum/melonds/ui/emulator/RuntimeLayoutView.kt
++++ b/app/src/main/java/me/magnum/melonds/ui/emulator/RuntimeLayoutView.kt
+@@ -1,12 +1,17 @@
+ package me.magnum.melonds.ui.emulator
+ 
+ import android.content.Context
++import android.hardware.input.InputManager
++import android.os.Handler
++import android.os.Looper
+ import android.util.AttributeSet
++import android.view.InputDevice
+ import androidx.core.view.isGone
+ import androidx.core.view.isVisible
+ import dagger.hilt.android.AndroidEntryPoint
+ import me.magnum.melonds.common.vibration.TouchVibrator
+ import me.magnum.melonds.domain.model.Input
++import me.magnum.melonds.domain.model.Point
+ import me.magnum.melonds.domain.model.input.SoftInputBehaviour
+ import me.magnum.melonds.domain.model.layout.LayoutComponent
+ import me.magnum.melonds.ui.common.LayoutView
+@@ -34,6 +39,32 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet? = null) : LayoutV
+     private var isSoftInputVisible = true
+     private var areScreensSwapped = false
+     private var connectedControllersState: ConnectedControllersState = ConnectedControllersState.NoControllers
++    private val inputManager = context.getSystemService(Context.INPUT_SERVICE) as InputManager
++    private val pressedVirtualButtons = mutableSetOf<Input>()
++    private val deviceListener = object : InputManager.InputDeviceListener {
++        override fun onInputDeviceAdded(deviceId: Int) = updateVisibility()
++        override fun onInputDeviceRemoved(deviceId: Int) = updateVisibility()
++        override fun onInputDeviceChanged(deviceId: Int) = updateVisibility()
++    }
++
++    override fun onAttachedToWindow() {
++        super.onAttachedToWindow()
++        inputManager.registerInputDeviceListener(deviceListener, Handler(Looper.getMainLooper()))
++        updateVisibility()
++    }
++
++    override fun onDetachedFromWindow() {
++        inputManager.unregisterInputDeviceListener(deviceListener)
++        super.onDetachedFromWindow()
++    }
++
++    private fun hasPhysicalController(): Boolean = inputManager.inputDeviceIds.any { id ->
++        inputManager.getInputDevice(id)?.let { device ->
++            device.isEnabled && device.isExternal && !device.isVirtual &&
++                (device.supportsSource(InputDevice.SOURCE_GAMEPAD) ||
++                    device.supportsSource(InputDevice.SOURCE_JOYSTICK))
++        } == true
++    }
+ 
+     fun setFrontendInputHandler(frontendInputHandler: FrontendInputHandler) {
+         this.frontendInputHandler = frontendInputHandler
+@@ -41,7 +72,17 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet? = null) : LayoutV
+     }
+ 
+     fun setSystemInputHandler(systemInputHandler: IInputListener) {
+-        this.systemInputHandler = systemInputHandler
++        this.systemInputHandler = object : IInputListener {
++            override fun onKeyPress(key: Input) {
++                if (key in Input.SYSTEM_BUTTONS) pressedVirtualButtons.add(key)
++                systemInputHandler.onKeyPress(key)
++            }
++            override fun onKeyReleased(key: Input) {
++                pressedVirtualButtons.remove(key)
++                systemInputHandler.onKeyReleased(key)
++            }
++            override fun onTouch(point: Point) = systemInputHandler.onTouch(point)
++        }
+         updateInputs()
+     }
+ 
+@@ -173,6 +214,12 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet? = null) : LayoutV
+             }
+         }
+ 
++        if (hasPhysicalController()) {
++            // Suppress all pad components without changing saved visibility or DS touch.
++            pressedVirtualButtons.toList().forEach { systemInputHandler?.onKeyReleased(it) }
++            hiddenComponents = LayoutComponent.entries.toList()
++        }
++
+         val visibleComponents = LayoutComponent.entries.filter { !hiddenComponents.contains(it) }
+ 
+         hiddenComponents.forEach { component ->
+@@ -186,4 +233,4 @@ class RuntimeLayoutView(context: Context, attrs: AttributeSet? = null) : LayoutV
+             }
+         }
+     }
+-}
+\ No newline at end of file
++}
