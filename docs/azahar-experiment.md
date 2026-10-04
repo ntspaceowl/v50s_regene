@@ -64,3 +64,13 @@ APK SHA256: `7EF590E14862D67B1215A39D5F75F6A9E260478FD0EF061CDF18D17756C5339D`. 
 모든 증거 파일은 `test-results/2026-10-04/`에 있으며 PID 로그는 `azahar-new-build-runtime.log`다. 시작 중 Surface/EGL 경고 및 Activity transaction 경고도 있었다. 현재 시험에서 영상·터치·동일 PID 유지가 확인됐다는 제한적인 결과이며 모든 게임/반복 lifecycle 안정성의 증거는 아니다.
 
 ReGene의 auto_pose=false 벤치 조건이다. 실제 기기 회전, 커버 분리·연결, 실제 손가락, PC USB 분리 및 BT/USB-C 게임패드 입력/자동 숨김·복원과 눌린 조합 입력 해제는 남았다. 실제 MX FLEX DUO는 이 시험 당시 Bluetooth DISCONNECTED였으므로 컨트롤러 연결 시험으로 해석하지 않는다.
+
+## 후속: 실제 게임 전경에서 Bluetooth 연결 해제 복원
+
+후속 실제 MX FLEX DUO 연결 및 매핑/방향 입력 결과는 controller-overlay 관련 기록을 참조한다. 이번에는 설정 메뉴를 열거나 게임 화면을 전환하지 않고 연결 해제를 관찰했다.
+
+- 해제 전 Bluetooth STATE_CONNECTED와 활성 MX FLEX DUO 입력 장치, Azahar EmulationActivity 전경, PID29465를 확인했다. `azahar-batch-before-input.png`에서 가상패드가 없고 빈 파일3 게임 영상이 출력됐다.
+- 19:07:34.762의 BluetoothHidHostService 로그에서 해당 장치의 상태2→0 전환을 확인했다. 후속 Bluetooth STATE_DISCONNECTED, 입력 장치 목록의 MX FLEX DUO 없음, EmulationActivity 전경 및 PID29465 유지를 확인했다. 해제 원인을 로그만으로 단정하지 않는다.
+- `azahar-ingame-idle-disconnect-restored.png`에서 L/R, 방향키, 스틱, ABXY, START/SELECT가 다시 표시됐다. 빈 파일3 게임 영상도 유지됐다. PC에서 메뉴를 여는 복구 동작 없이 표시가 복원됐으며, 연결 전 사용하던 가상패드 설정을 바꾸지 않았다. 상태 증거는 `azahar-ingame-idle-disconnect.log`다.
+
+이 시점은 auto_pose=true에서 실제 가로 자세를 아직 감지하지 못한 일반 세로 화면(1080×2340)이다. 따라서 게임 전경의 실제 연결 해제 후 가상패드 복원을 확인한 것으로 한정한다. 확장 상태의 즉시 복원, 재연결 후 재숨김, 실제 회전/패널 배치/손가락/USB-C 및 원래 수동 숨김 상태에서의 실제 연결 시험을 이 증거로 대신하지 않는다.
