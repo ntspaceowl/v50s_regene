@@ -1,6 +1,7 @@
 package dev.regene.v50s;
 
 import android.app.Activity;
+import android.app.ActivityOptions;
 import android.app.AppOpsManager;
 import android.content.Intent;
 import android.net.Uri;
@@ -48,7 +49,9 @@ public final class MainActivity extends Activity {
                     Toast.makeText(this,"앱 사용 정보, 시스템 설정 변경, 가로 방향 유지 권한을 먼저 허용하세요.",Toast.LENGTH_LONG).show(); return;
                 }
                 startForegroundService(new Intent(this,ControllerService.class).putExtra("package",app[1]));
-                startActivity(launch);
+                ActivityOptions options=ActivityOptions.makeBasic();
+                options.setLaunchDisplayId(0);
+                startActivity(launch,options.toBundle());
             }); b.setEnabled(launch!=null);
         }
         button(root,"자동 제어 중지",()->stopService(new Intent(this,ControllerService.class)));

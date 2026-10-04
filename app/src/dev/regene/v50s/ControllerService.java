@@ -23,6 +23,7 @@ public final class ControllerService extends Service implements SensorEventListe
     private SensorManager sensors;
     private RotationPolicy pose;
     private boolean settledPose;
+    private boolean hadWide;
     private long poseChangedAt;
     private android.content.SharedPreferences prefs;
     private String idleStatus;
@@ -77,6 +78,19 @@ public final class ControllerService extends Service implements SensorEventListe
         Settings.System.putInt(getContentResolver(),Settings.System.ACCELEROMETER_ROTATION,oldAuto);
         ownsRotation=false;prefs.edit().putBoolean("restore_pending",false).apply();
     }
+    private void restoreBodyTaskFocus() {
+        // Azahar keeps its running game in the launcher task. Other emulators
+        // may use separate tasks, so reopening their launcher can leave the game.
+        if(!"org.azahar_emu.azahar.regeneprobe".equals(selected))return;
+        Intent launch=getPackageManager().getLaunchIntentForPackage(selected);
+        if(launch==null)return;
+        ActivityOptions options=ActivityOptions.makeBasic();
+        options.setLaunchDisplayId(Display.DEFAULT_DISPLAY);
+        // Reorder the existing launcher task, preserving its running game.
+        // LG can leave global key focus on its cover launcher after wake.
+        startActivity(launch,options.toBundle());
+        Log.i("ReGene","Restored body task focus: "+selected);
+    }
     @Override public void onSensorChanged(SensorEvent event) {
         boolean before=pose.landscape();
         boolean after=pose.sample(event.values[0],event.values[1]);
@@ -120,6 +134,8 @@ public final class ControllerService extends Service implements SensorEventListe
                 if(Settings.System.getInt(getContentResolver(),Settings.System.USER_ROTATION,0)!=3)
                     Settings.System.putInt(getContentResolver(),Settings.System.USER_ROTATION,3);
                 boolean wide=lg.enabled();
+                if(wide && !hadWide)restoreBodyTaskFocus();
+                hadWide=wide;
                 if(wide && idleStatus!=null)status("두 화면 배치 유지 · "+selected);
                 idleStatus=null;
                 if(!wide && now>=cooldown && now-lastSet>1000) {
@@ -128,6 +144,7 @@ public final class ControllerService extends Service implements SensorEventListe
                     else {lg.set(true);lastSet=now;attempts++;status("상단/하단 확장 요청 "+attempts+" · "+selected);}
                 }
             } else if(now>launchUntil || !foreground.equals(getPackageName())) {
+                hadWide=false;
                 if(lg.enabled())lg.set(false);
                 guard.disable();
                 if(ownsRotation)restoreRotation();

@@ -1,0 +1,68 @@
+diff --git a/src/android/app/src/main/java/org/citra/citra_emu/activities/EmulationActivity.kt b/src/android/app/src/main/java/org/citra/citra_emu/activities/EmulationActivity.kt
+index 108fd3c..4e41843 100644
+--- a/src/android/app/src/main/java/org/citra/citra_emu/activities/EmulationActivity.kt
++++ b/src/android/app/src/main/java/org/citra/citra_emu/activities/EmulationActivity.kt
+@@ -76,6 +76,7 @@ class EmulationActivity : AppCompatActivity() {
+         if (intent.getBooleanExtra("launched_from_shortcut", false)) {
+             finishAffinity()
+         } else {
++            MainActivity.requestLibraryRefresh()
+             this.finish()
+         }
+     }
+diff --git a/src/android/app/src/main/java/org/citra/citra_emu/ui/main/MainActivity.kt b/src/android/app/src/main/java/org/citra/citra_emu/ui/main/MainActivity.kt
+index c16b95e..eeb4390 100644
+--- a/src/android/app/src/main/java/org/citra/citra_emu/ui/main/MainActivity.kt
++++ b/src/android/app/src/main/java/org/citra/citra_emu/ui/main/MainActivity.kt
+@@ -81,17 +81,25 @@ class MainActivity :
+ 
+     companion object {
+         const val KEY_SETUP_CURRENT_PAGE = "SetupCurrentPage"
++        private var libraryRefreshPending = false
++
++        fun requestLibraryRefresh() {
++            libraryRefreshPending = true
++        }
+     }
+ 
+     override fun onCreate(savedInstanceState: Bundle?) {
+         RefreshRateUtil.enforceRefreshRate(this)
+ 
+-        val splashScreen = installSplashScreen()
+         CitraDirectoryUtils.attemptAutomaticUpdateDirectory()
+-        splashScreen.setKeepOnScreenCondition {
+-            !DirectoryInitialization.areCitraDirectoriesReady() &&
+-                PermissionsHandler.hasWriteAccess(this) &&
+-                !CitraDirectoryUtils.needToUpdateManually()
++        // Returning from emulation needs no startup splash during LG display resizing.
++        if (!DirectoryInitialization.areCitraDirectoriesReady()) {
++            val splashScreen = installSplashScreen()
++            splashScreen.setKeepOnScreenCondition {
++                !DirectoryInitialization.areCitraDirectoriesReady() &&
++                    PermissionsHandler.hasWriteAccess(this) &&
++                    !CitraDirectoryUtils.needToUpdateManually()
++            }
+         }
+ 
+         if (PermissionsHandler.hasWriteAccess(applicationContext) &&
+@@ -211,6 +219,15 @@ class MainActivity :
+ 
+         ThemeUtil.setCorrectTheme(this)
+         super.onResume()
++        if (libraryRefreshPending) {
++            window.decorView.postDelayed({
++                // Only the surviving library instance consumes this request after
++                // LG has contracted its wide display and restored normal rotation.
++                if (isFinishing || isDestroyed || !libraryRefreshPending) return@postDelayed
++                libraryRefreshPending = false
++                recreate()
++            }, 1500)
++        }
+     }
+ 
+     override fun onDestroy() {
+@@ -469,3 +486,4 @@ class MainActivity :
+         homeViewModel.selectedGamesDirectory = result
+     }
+ }
++
