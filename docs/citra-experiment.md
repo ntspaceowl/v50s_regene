@@ -59,3 +59,14 @@ ControllerService가 선택 앱/실행 여부/현재 Activity를 게시하고, C
 ReGene 0.1.5/code6 빌드와 v2/v3 서명 검증 뒤 설치했다. 제어앱의 Citra 가상패드 숨김 시험 버튼을 눌렀을 때 17:04:55 OFF →17:04:57 숨김 확인/ON 로그, 캡처 `citra-auto-hide-trial.png`에서 전체 패드가 사라졌다. owned=true/test_mode=true 확인. 시험 종료·복원 버튼을 눌렀을 때17:05:46 ON →17:05:47 OFF →17:05:48 복원 확인 로그와 `citra-auto-restore-trial.png`에서 가상패드 재표시를 확인했다. owned=false/test_mode=false로 종료했다. Citra PID22161가 유지되고 두 게임 영상이 계속 표시됐다.
 
 이 시험은 실제 외부 장치를 가장한 ADB 주입이 아니라 앱에 명시적으로 제공한 시험 버튼으로 같은 메뉴 제어 경로를 실행한 것이다. 물리 BT/USB-C 연결, 최초 수동 ON 유지, 숨김 중 하단 터치, 중간 사용자 개입/대화상자/중지·재시작 검증은 여전히 미완료다. 원본 Citra APK는 수정하지 않았다.
+
+
+## 0.1.5 숨김 중 하단 터치 / 최초 수동 숨김 보존 검증
+
+가상 A 입력으로 Kirby 파일 선택 화면에 진입한 뒤 제어앱 숨김 시험을 실행했다. 전환 직후 캡처 `citra-hidden-file-menu.png`에는 아직 Settings와 이전 패드가 나왔고, 후속 `citra-hidden-file-menu-settled.png`에서 메뉴가 닫히고 패드가 모두 사라졌다. 현재 서비스의 숨김 확인 로그는 checked와 BACK 요청 성공 시점이므로 실제 설정 창 닫힘/패드 제거 프레임보다 먼저 기록될 수 있다. 후속 개선은 메뉴 닫힘을 확인한 뒤 완료 상태를 보고하는 것이다.
+
+패드가 숨겨진 안정된 화면에서 하단 파일1 위치(700,1510)에1100ms 터치를 보내 모드 선택 화면으로 이동했다. 이후 특정 옵션인 디디디로 쿵쿵 위치(1530,1340)를 같은 방식으로 눌러 해당 모드 타이틀/시작 화면으로 진입했다. `citra-hidden-lower-touch-result.png`, `citra-hidden-dedede-touch.png`. 두 화면 영상과 패드 숨김이 유지되고 Citra PID22161 유지. 이는 ADB 터치 좌표 전달 검증이며 실제 손가락/패널 연결 시험을 대신하지 않는다.
+
+시험 종료 버튼으로 제어앱의 숨김 소유권을 false로 돌린 뒤, Citra Settings에서 Hide Input Buttons를 직접 ON으로 설정했다. 이때 test_mode=false/owned=false였다. 그 상태로 제어앱 숨김 시험을 실행한 뒤에도 owned=false가 유지됐으며, 시험 종료 후 test_mode=false/owned=false와 패드 숨김이 유지됐다. `citra-preserved-original-hidden.png`. 다시 Settings를 열어17:14:33 로그 및 checked=ON 캡처로 수동 상태 유지도 확인했다.
+
+마지막으로 이번 테스트를 위해 수동으로 바꾼 설정을 원래 OFF로 되돌렸다. prefs의 test_mode=false/owned=false 및17:14:51 OFF 로그, `citra-preserve-cleanup-restored.png`의 패드 재표시 확인. 기존 파일1의1% 상태를 선택해 메뉴만 탐색했으며 빈 파일 생성/삭제나 gameplay 진행은 하지 않았다. 물리 게임패드 연결·해제와 커버/회전/PC 없이 실행 검증은 남아 있다.
