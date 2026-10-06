@@ -40,7 +40,7 @@ public final class ControllerService extends Service implements SensorEventListe
         Intent stop=new Intent(this,ControllerService.class).setAction("STOP");
         PendingIntent stopIntent=PendingIntent.getService(this,1,stop,PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT);
         startForeground(1,new Notification.Builder(this,"session").setSmallIcon(android.R.drawable.ic_menu_view)
-            .setContentTitle("ReGene 자동 제어 중").setContentText("듀얼스크린 상단 · 본체 하단")
+            .setContentTitle("ReGene 자동 제어 중").setContentText("게임 상하 배치 · 독서 좌우 배치")
             .addAction(new Notification.Action.Builder(null,"중지",stopIntent).build()).build());
         if(prefs.getBoolean("restore_pending",false)) {
             oldRotation=prefs.getInt("old_rotation",0);oldAuto=prefs.getInt("old_auto",1);ownsRotation=true;
@@ -134,39 +134,39 @@ public final class ControllerService extends Service implements SensorEventListe
             for(Display d:getSystemService(DisplayManager.class).getDisplays())
                 if("Built-in Cover-Screen".equals(d.getName()) && d.getState()==Display.STATE_ON)cover=true;
             if(SystemClock.elapsedRealtime()-poseChangedAt>600)settledPose=pose.landscape();
-            boolean landscape=!prefs.getBoolean("auto_pose",true) || settledPose;
-            boolean game=activity.endsWith(".EmulationActivity") || activity.endsWith(".EmulatorActivity") || activity.endsWith(".DraSticEmuActivity");
-            boolean layoutEditor=(("me.magnum.melonds".equals(foreground) || "me.magnum.melonds.regeneprobe".equals(foreground))
-                && activity.endsWith(".LayoutEditorActivity"))
-                || ("com.dsemu.drastic".equals(foreground) && "com.dsemu.drastic.ui.Customizer".equals(activity));
-            boolean active=selected.equals(foreground) && (game || layoutEditor) && now-activitySince>=2500 && cover && landscape && getSystemService(PowerManager.class).isInteractive();
+            boolean content=ContentProfile.content(selected,activity);
+            boolean poseMatches=ContentProfile.poseMatches(selected,settledPose,prefs.getBoolean("auto_pose",true));
+            boolean active=selected.equals(foreground) && content && now-activitySince>=2500 && cover && poseMatches && getSystemService(PowerManager.class).isInteractive();
             if(active) {
                 saveRotation();
-                guard.enable();
+                guard.enable(ContentProfile.book(selected)
+                    ? android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                    : android.content.pm.ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
                 if(Settings.System.getInt(getContentResolver(),Settings.System.ACCELEROMETER_ROTATION,1)!=0)
                     Settings.System.putInt(getContentResolver(),Settings.System.ACCELEROMETER_ROTATION,0);
-                if(Settings.System.getInt(getContentResolver(),Settings.System.USER_ROTATION,0)!=3)
-                    Settings.System.putInt(getContentResolver(),Settings.System.USER_ROTATION,3);
+                int rotation=ContentProfile.rotation(selected);
+                if(Settings.System.getInt(getContentResolver(),Settings.System.USER_ROTATION,0)!=rotation)
+                    Settings.System.putInt(getContentResolver(),Settings.System.USER_ROTATION,rotation);
                 boolean wide=lg.enabled();
                 if(wide && !hadWide)restoreBodyTaskFocus();
                 hadWide=wide;
-                if(wide && idleStatus!=null)status("두 화면 배치 유지 · "+selected);
+                if(wide && idleStatus!=null)status((ContentProfile.book(selected) ? "좌우 독서 배치 유지 · " : "두 화면 배치 유지 · ")+selected);
                 idleStatus=null;
                 if(!wide && now>=cooldown && now-lastSet>1000) {
                     if(now-budgetStart>15000){attempts=0;budgetStart=now;}
                     if(attempts>=6){cooldown=now+60000;status("화면 확장이 반복 해제되어 60초 대기합니다.");}
-                    else {lg.set(true);lastSet=now;attempts++;status("상단/하단 확장 요청 "+attempts+" · "+selected);}
+                    else {lg.set(true);lastSet=now;attempts++;status((ContentProfile.book(selected) ? "좌우 독서 확장 요청 " : "상단/하단 확장 요청 ")+attempts+" · "+selected);}
                 }
             } else if(now>launchUntil || !foreground.equals(getPackageName())) {
                 hadWide=false;
                 releaseDisplay();
                 String reason;
                 if(!selected.equals(foreground))reason="다른 앱 사용 중: 화면 배치 대기";
-                else if(!(game || layoutEditor))reason="게임 또는 레이아웃 편집 화면 대기";
+                else if(!content)reason=ContentProfile.book(selected) ? "책을 열면 좌우 독서 배치를 시작합니다." : "게임 또는 레이아웃 편집 화면 대기";
                 else if(!getSystemService(PowerManager.class).isInteractive())reason="화면 꺼짐: 화면 배치 대기";
                 else if(!cover)reason="듀얼스크린이 켜지면 화면 배치를 재개합니다.";
-                else if(!landscape)reason="가로 자세 감지 대기: 폰을 들어 가로로 돌려주세요.";
-                else reason="게임 화면 준비 중";
+                else if(!poseMatches)reason=ContentProfile.book(selected) ? "독서 자세 대기: 폰을 책처럼 세로로 펼쳐주세요." : "가로 자세 감지 대기: 폰을 들어 가로로 돌려주세요.";
+                else reason="콘텐츠 화면 준비 중";
                 if(!reason.equals(idleStatus)){idleStatus=reason;status(reason);}
             }
         } catch(Exception e) {fail(e);handler.removeCallbacks(this);stopSelf();return;}
