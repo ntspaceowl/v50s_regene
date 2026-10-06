@@ -2,10 +2,14 @@ package dev.regene.v50s;
 
 /** Each app decides when and in which physical pose its content may span panels. */
 final class ContentProfile {
-    static boolean book(String pkg) {return "kr.co.millie.millieshelf".equals(pkg);}
+    static boolean book(String pkg) {return "kr.co.millie.millieshelf".equals(pkg)
+        || "com.initialcoms.ridi".equals(pkg);}
     static boolean content(String pkg, String activity) {
-        if(book(pkg))return activity.equals(pkg+".kotlin.ui.viewer.pdf.ui.PdfViewerActivity")
+        if("kr.co.millie.millieshelf".equals(pkg))return activity.equals(pkg+".kotlin.ui.viewer.pdf.ui.PdfViewerActivity")
             || activity.equals(pkg+".kotlin.ui.viewer.millieviewer.MillieViewerActivity");
+        if("com.initialcoms.ridi".equals(pkg))return activity.equals("com.ridi.books.viewer.reader.pagebased.comic.ComicBookReaderActivity")
+            || activity.equals("com.ridi.books.viewer.reader.pagebased.pdf.PDFReaderActivity")
+            || activity.equals("com.ridi.books.viewer.reader.epub.EPubReaderActivity");
         return activity.endsWith(".EmulationActivity") || activity.endsWith(".EmulatorActivity")
             || activity.endsWith(".DraSticEmuActivity")
             || (("me.magnum.melonds".equals(pkg) || "me.magnum.melonds.regeneprobe".equals(pkg))

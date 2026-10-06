@@ -12,6 +12,17 @@ public final class ContentProfileTest {
         check(ContentProfile.poseMatches(millie,false,true),"book upright expands");
         check(!ContentProfile.poseMatches(millie,true,true),"book sideways releases");
         check(ContentProfile.rotation(millie)==0,"book keeps vertical pages");
+        String ridi="com.initialcoms.ridi";
+        check(ContentProfile.content(ridi,"com.ridi.books.viewer.reader.pagebased.comic.ComicBookReaderActivity"),"Ridi comic reader spans");
+        check(ContentProfile.content(ridi,"com.ridi.books.viewer.reader.pagebased.pdf.PDFReaderActivity"),"Ridi PDF reader spans");
+        check(ContentProfile.content(ridi,"com.ridi.books.viewer.reader.epub.EPubReaderActivity"),"Ridi EPUB reader spans");
+        check(!ContentProfile.content(ridi,"com.ridi.books.viewer.reader.activity.ReaderSettingsActivity"),"Ridi settings must release");
+        check(!ContentProfile.content(ridi,"com.ridi.books.viewer.reader.pagebased.comic.webtoon.WebtoonReaderActivity"),"Ridi webtoon excluded");
+        check(!ContentProfile.content(ridi,"com.ridi.books.viewer.reader.bom.BomReaderActivity"),"unverified Ridi viewer excluded");
+        check(!ContentProfile.content(ridi,"com.ridi.books.MainActivity"),"Ridi shelf must release");
+        check(!ContentProfile.content(millie,"com.ridi.books.viewer.reader.pagebased.comic.ComicBookReaderActivity"),"reader profiles isolated");
+        check(ContentProfile.rotation(ridi)==0 && ContentProfile.poseMatches(ridi,false,true),"Ridi upright mode");
+        check(!ContentProfile.poseMatches(ridi,true,true),"Ridi sideways releases");
         for(String pkg:new String[]{"org.citra.rgn","org.azahar_emu.azahar.regeneprobe","me.magnum.melonds.regeneprobe","com.dsemu.drastic"}){
             check(ContentProfile.rotation(pkg)==3,"game rotation unchanged");
             check(ContentProfile.poseMatches(pkg,true,true),"game landscape expands");

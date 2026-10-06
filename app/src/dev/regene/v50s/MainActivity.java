@@ -55,7 +55,7 @@ public final class MainActivity extends Activity {
         button(root,"시스템 설정 변경 허용",()->startActivity(new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,Uri.parse("package:"+getPackageName()))));
         button(root,"가로 방향 유지 허용",()->startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,Uri.parse("package:"+getPackageName()))));
         TextView guardHint=new TextView(this);guardHint.setText("DraStic 등의 방향 요청을 맞추려면 다른 앱 위 표시 권한이 필요합니다. 게임 터치는 가리지 않습니다.");root.addView(guardHint);
-        String[][] apps = {{"Citra","org.citra.rgn"},{"Azahar","org.azahar_emu.azahar.regeneprobe"},{"melonDS","me.magnum.melonds.regeneprobe"},{"DraStic","com.dsemu.drastic"},{"밀리의서재 · 독서","kr.co.millie.millieshelf"}};
+        String[][] apps = {{"Citra","org.citra.rgn"},{"Azahar","org.azahar_emu.azahar.regeneprobe"},{"melonDS","me.magnum.melonds.regeneprobe"},{"DraStic","com.dsemu.drastic"},{"밀리의서재 · 독서","kr.co.millie.millieshelf"},{"리디 · 독서","com.initialcoms.ridi"}};
         for (String[] app:apps) {
             Intent launch = getPackageManager().getLaunchIntentForPackage(app[1]);
             Button b = button(root, app[0]+(launch==null ? " · 미설치" : " 실행"),()->{
@@ -78,7 +78,7 @@ public final class MainActivity extends Activity {
                 .putString("status","자동 제어 중지됨").apply();
         });
         button(root,"Citra 패드 자동 숨김 권한",()->startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)));
-        TextView note = new TextView(this); note.setText("게임은 가로로 돌리면 상하 배치되고, 패드 연결 시 가상패드를 숨깁니다. 밀리의서재는 세로로 펼쳐 읽고 앱의 두 쪽 보기를 켜주세요. 첫 표지는 한 쪽으로 표시될 수 있습니다."); root.addView(note);
+        TextView note = new TextView(this); note.setText("게임은 가로로 돌리면 상하 배치되고, 패드 연결 시 가상패드를 숨깁니다. 독서 앱은 세로로 펼쳐 읽고 앱의 두 쪽 보기를 켜주세요. 첫 표지는 한 쪽으로 표시될 수 있습니다."); root.addView(note);
         ScrollView scroll = new ScrollView(this); scroll.addView(root); setContentView(scroll);
     }
     private Button button(LinearLayout root,String text,Runnable action) { Button b=new Button(this); b.setText(text); b.setOnClickListener(v->action.run()); root.addView(b); return b; }
