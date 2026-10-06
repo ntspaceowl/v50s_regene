@@ -18,6 +18,7 @@ public final class ControllerService extends Service implements SensorEventListe
     private final Handler handler=new Handler();
     private String selected="", foreground="", activity="", lastActivity="";
     private final ForegroundHistory foregroundHistory=new ForegroundHistory();
+    private LaunchSession session;
     private long cursor, budgetStart, cooldown, lastSet, launchUntil, activitySince;
     private int attempts;
     private LgWide lg;
@@ -61,6 +62,7 @@ public final class ControllerService extends Service implements SensorEventListe
         if(intent==null || "STOP".equals(intent.getAction())) {stopSelf();return START_NOT_STICKY;}
         selected=intent.getStringExtra("package"); launchUntil=System.currentTimeMillis()+15000;
         if(selected==null || lg==null) {stopSelf();return START_NOT_STICKY;}
+        session=new LaunchSession(selected,System.currentTimeMillis(),ContentProfile.book(selected));
         running=true;
         prefs.edit().putString("controller_selected",selected).putBoolean("controller_running",true).apply();
         // Warm launches also need a fresh history query: the game may already be resumed.
@@ -118,9 +120,14 @@ public final class ControllerService extends Service implements SensorEventListe
             UsageEvents events=getSystemService(UsageStatsManager.class).queryEvents(Math.max(0,cursor-10000),now);
             UsageEvents.Event event=new UsageEvents.Event();
             while(events.hasNextEvent()) {events.getNextEvent(event);
-                if(event.getEventType()==UsageEvents.Event.ACTIVITY_RESUMED)
+                if(event.getEventType()==UsageEvents.Event.ACTIVITY_RESUMED) {
                     foregroundHistory.resumed(event.getTimeStamp(),event.getPackageName(),event.getClassName());
+                    session.resumed(event.getTimeStamp(),event.getPackageName());
+                }
             }
+            // Process every resume, including HOME followed by a quick direct
+            // launch in the same poll. Returning cannot revive an ended session.
+            if(session.shouldStop(now)){stopSelf();return;}
             foreground=foregroundHistory.packageName();activity=foregroundHistory.className();
             cursor=now;
             String screen=foreground+"/"+activity;

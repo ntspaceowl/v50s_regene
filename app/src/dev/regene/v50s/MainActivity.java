@@ -78,7 +78,7 @@ public final class MainActivity extends Activity {
                 .putString("status","자동 제어 중지됨").apply();
         });
         button(root,"Citra 패드 자동 숨김 권한",()->startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)));
-        TextView note = new TextView(this); note.setText("게임은 가로로 돌리면 상하 배치되고, 패드 연결 시 가상패드를 숨깁니다. 독서 앱은 세로로 펼쳐 읽고 앱의 두 쪽 보기를 켜주세요. 첫 표지는 한 쪽으로 표시될 수 있습니다."); root.addView(note);
+        TextView note = new TextView(this); note.setText("게임은 가로로 돌리면 상하 배치되고, 패드 연결 시 가상패드를 숨깁니다. 독서 앱은 세로로 펼쳐 읽고 앱의 두 쪽 보기를 켜주세요. 홈이나 다른 앱으로 나가면 독서 제어가 끝납니다. 다시 확장하려면 ReGene에서 실행하세요."); root.addView(note);
         ScrollView scroll = new ScrollView(this); scroll.addView(root); setContentView(scroll);
     }
     private Button button(LinearLayout root,String text,Runnable action) { Button b=new Button(this); b.setText(text); b.setOnClickListener(v->action.run()); root.addView(b); return b; }

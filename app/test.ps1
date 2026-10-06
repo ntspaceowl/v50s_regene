@@ -2,7 +2,7 @@ param([string]$JavaBin='C:/Program Files/Android/Android Studio/jbr/bin')
 $ErrorActionPreference='Stop'
 $taskOutput=Join-Path $PSScriptRoot 'build/tests'
 New-Item -ItemType Directory -Force $taskOutput | Out-Null
-$taskSources=@('RotationPolicy','ForegroundHistory','CitraTargets','ReleaseActions','ContentProfile') | ForEach-Object {
+$taskSources=@('RotationPolicy','ForegroundHistory','CitraTargets','ReleaseActions','ContentProfile','LaunchSession') | ForEach-Object {
     Join-Path $PSScriptRoot "src/dev/regene/v50s/$_.java"
 }
 $taskTests=@(Get-ChildItem (Join-Path $PSScriptRoot 'tests/dev/regene/v50s') -Filter '*.java')

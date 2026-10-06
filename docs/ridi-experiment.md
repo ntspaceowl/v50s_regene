@@ -13,3 +13,7 @@ ReGene 0.1.18/code19에 리디 독서 버튼과 세로 프로필을 추가했다
 ContentProfileTest는 리디 세 가지 읽기 Activity, 설정/서재/웹툰 제외, 밀리와 Activity 분리, 리디 세로 자세 및 기존 네 게임의 회전 규칙을 검사한다. 기존 회귀 시험과 전체 빌드, APK v2/v3 서명 검증 및 V50S 설치가 통과했다.
 
 HOME 후 restore_pending=false 및 본체 런처 전경을 확인했다. ReGene의 리디 버튼으로 같은 만화에 복귀하여 다시 2160×2340/land/ROTATION_0 및 확장 요청1회를 확인했다. 현재 책 화면에서 독서 확장과 auto_pose=true를 유지한다. 설치된 APK와 releases/ReGene.apk의 SHA256은 모두 1C00CBCC74BE00A236A5088592DE4F5B0A56CA385CBE42B16C649E1A830DA179이다.
+
+## 0.1.19 실행 세션 후속
+
+HOME/다른 앱 전환으로 독서 세션을 끝내도록 변경했다. ReGene 실행에서 2160×2340 확장을 확인하고 HOME 이후 앱의 실제 런처 Activity로 직접 실행하여 1080×2340, controller_running=false, restore_pending=false를 확인했다. 이전 버전의 자동 복귀 재개 기록을 대체한다. 앱의 두 쪽 보기 설정과 책 데이터는 유지한다. 상세는 [독서 세션 검증](reading-session.md)을 따른다.

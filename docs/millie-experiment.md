@@ -13,3 +13,7 @@ LG 확장 요청 1회 뒤 DocumentView는 2160×2340, Android Activity 구성은
 HOME 입력 뒤 restore_pending=false, 본체 논리 크기1080×2340, 본체 런처 전경 및 대기 상태를 확인했다. 최종 빌드를 다시 설치한 뒤 ReGene 독서 버튼으로 동일 PDF에 복귀했고 2160×2340, layoutMode=DOUBLE, 확장 요청1회를 확인했다. 최종 APK SHA256은 F2114943AB30D9D5690A27C49CAA2265BDDEBCD5164765F80A08EA17FEDEB2A8이며 설치된 APK와 배포 파일의 해시가 같다.
 
 EPUB 동작, 다른 PDF 책의 페이지 형상, 이번 독서 프로필의 커버 닫기/열기 및 실제 자세 전환은 아직 실기기 통과로 기록하지 않는다. 회전 프로필의 자동 판정은 순수 Java 테스트를 통과했다. 사용자에게 이미 확인한 페이지 시험을 다시 요청하지 않는다. 최종 기기는 책 뷰어에서 독서 확장을 켠 상태이며 auto_pose=true다.
+
+## 0.1.19 실행 세션 후속
+
+HOME/다른 앱 전환으로 독서 세션을 끝내도록 변경했다. ReGene 실행에서 2160×2340 확장을 확인하고 HOME 이후 앱의 실제 런처 Activity로 직접 실행하여 1080×2340, controller_running=false, restore_pending=false를 확인했다. 이전 버전의 자동 복귀 재개 기록을 대체한다. 앱의 두 쪽 보기 설정과 책 데이터는 유지한다. 상세는 [독서 세션 검증](reading-session.md)을 따른다.
